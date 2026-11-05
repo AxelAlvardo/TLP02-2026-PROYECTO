@@ -1,0 +1,3 @@
+nltk>=3.8
+spacy>=3.7
+# Modelo de spaCy (no se instala con pip install -r): python -m spacy download es_core_news_sm
