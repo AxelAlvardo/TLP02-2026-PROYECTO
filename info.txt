@@ -1,0 +1,9 @@
+---
+
+### Guía rápida para explicarlo en una presentación
+
+* **`formal_parser.py`**: *"Usa recursión para respetar la jerarquía matemática: `expr()` llama a `term()` (sumas) y `term()` llama a `factor()` (multiplicaciones). Como la multiplicación está más profunda en las llamadas, se resuelve primero en el árbol."*
+* **`spanish_parser.py`**: *"En español, para validar que `'el gato'` sea masculino singular, tuvimos que atar etiquetas rígidas (`m_sg`). Funciona para `'el gato negro persigue un ratón'`, pero si omitimos el sujeto (`'persigue un ratón'`) o metemos una subordinada (`'que ve'`), el parser colapsa porque espera siempre la fórmula exacta `Sujeto + Verbo + Objeto`."*
+* **`nlp_demo.py`**: *"Mientras nuestro parser de reglas fijas falla, spaCy usa modelos estadísticos y redes neuronales para encontrar el verbo raíz (`ROOT`) y conectar qué palabra depende de cuál, sin importar si falta el sujeto o cambia el orden."*
+
+<FollowUp label="¿Quieres un guion paso a paso para exponer este código?" query="Dame un guion breve paso a paso para explicar cada archivo durante mi presentación."/>
