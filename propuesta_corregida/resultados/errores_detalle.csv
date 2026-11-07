@@ -1,0 +1,74 @@
+sistema,id,nivel,oracion,tipo,detalle
+Parser propio (CFG),46,3,come el pan,falso negativo,"falla en la posición 0 ('come'), regla «SN → Det N | PN»: se esperaba un determinante o nombre propio y llegó 'come'"
+Parser propio (CFG),47,3,llegó ayer,falso negativo,palabra(s) fuera del léxico: ayer
+Parser propio (CFG),48,3,el gato la persigue,falso negativo,"falla en la posición 2 ('la'), regla «SV → V …»: se esperaba un verbo y llegó 'la'"
+Parser propio (CFG),49,3,Juan y María leen un libro,falso negativo,palabra(s) fuera del léxico: y
+Parser propio (CFG),50,3,el gato come y duerme,falso negativo,palabra(s) fuera del léxico: y
+Parser propio (CFG),51,3,el libro que el niño lee es nuevo,falso negativo,palabra(s) fuera del léxico: es
+Parser propio (CFG),52,3,el libro fue escrito por el profesor,falso negativo,"palabra(s) fuera del léxico: fue, escrito"
+Parser propio (CFG),53,3,quiero que el gato corra,falso negativo,"palabra(s) fuera del léxico: quiero, corra"
+Parser propio (CFG),54,3,¿dónde está el gato?,falso negativo,"palabra(s) fuera del léxico: dónde, está"
+Parser propio (CFG),55,3,el gato no come el pan,falso negativo,palabra(s) fuera del léxico: no
+Parser propio (CFG),56,3,el gato es negro,falso negativo,palabra(s) fuera del léxico: es
+Parser propio (CFG),57,3,yo veo a María,falso negativo,"palabra(s) fuera del léxico: yo, veo"
+Parser propio (CFG),58,3,se venden casas,falso negativo,"palabra(s) fuera del léxico: se, venden"
+Parser propio (CFG),59,3,la niña que el gato persigue corre,falso negativo,"falla en la posición 3 ('el'), regla «SV → V …»: se esperaba un verbo y llegó 'el'"
+Parser propio (CFG),60,3,el gato que duerme en la casa que Juan compró come el pan,falso negativo,"falla en la posición 8 ('juan'), regla «SV → V …»: se esperaba un verbo y llegó 'juan'"
+Parser propio (CFG),61,3,el profesor lee más libros que la estudiante,falso negativo,palabra(s) fuera del léxico: más
+Parser propio (CFG),62,3,Juan y María son rubio y morena respectivamente,falso negativo,"palabra(s) fuera del léxico: y, son, rubio, y, morena, respectivamente"
+Parser propio (CFG),63,3,el gato duerme porque está cansado,falso negativo,"palabra(s) fuera del léxico: porque, está"
+Parser propio (CFG),64,3,cuando llegó Pedro los niños corrieron,falso negativo,palabra(s) fuera del léxico: cuando
+spaCy sm (crudo),21,2,el gato negro persigue al ratón blanco,error de etiquetado,"esperado ('gato', 'perseguir', 'ratón') obtenido ('gato', 'perseguir', '-')"
+spaCy sm (crudo),31,2,la gata que duerme come el pan,error de etiquetado,"esperado ('gata', 'comer', 'pan') obtenido ('-', 'gata', '-')"
+spaCy sm (crudo),36,2,la gatos negros persiguen al ratón,falso positivo,discordancia determinante-sustantivo
+spaCy sm (crudo),37,2,el gato negro persiguen al ratón,falso positivo,discordancia sujeto-verbo
+spaCy sm (crudo),38,2,los niños duerme,falso positivo,discordancia sujeto-verbo
+spaCy sm (crudo),39,2,las niñas pequeño leen un libro,falso positivo,discordancia sustantivo-adjetivo
+spaCy sm (crudo),40,2,el niña lee un libro,falso positivo,discordancia de género det-sustantivo
+spaCy sm (crudo),41,2,una gato corre,falso positivo,discordancia de género det-sustantivo
+spaCy sm (crudo),42,2,gato el persigue ratón el,falso positivo,orden de palabras alterado
+spaCy sm (crudo),43,2,el persigue gato al ratón,falso positivo,orden de palabras alterado
+spaCy sm (crudo),44,2,la niña lee un libro nuevos,falso positivo,discordancia sustantivo-adjetivo en objeto
+spaCy sm (crudo),45,2,los gatos negra persiguen al ratón,falso positivo,discordancia sustantivo-adjetivo
+spaCy sm (crudo),60,3,el gato que duerme en la casa que Juan compró come el pan,error de etiquetado,"esperado ('gato', 'comer', 'pan') obtenido ('-', 'gato', '-')"
+spaCy sm (crudo),67,3,el gato que corre persiguen al ratón,falso positivo,discordancia a distancia a través de una relativa
+spaCy sm (crudo),68,3,los niños que duerme corren,falso positivo,discordancia verbo-antecedente en relativa
+spaCy sm (crudo),69,3,los niños de la escuela duerme,falso positivo,discordancia con atractor (sustantivo intermedio)
+spaCy sm (crudo),70,3,la niña que lee el libro corren,falso positivo,discordancia a distancia tras relativa con objeto
+spaCy sm (crudo),71,3,el gato persigue al ratón con con,falso positivo,secuencia agramatical de preposiciones
+spaCy sm + concordancia,21,2,el gato negro persigue al ratón blanco,error de etiquetado,"esperado ('gato', 'perseguir', 'ratón') obtenido ('gato', 'perseguir', '-')"
+spaCy sm + concordancia,31,2,la gata que duerme come el pan,falso negativo,la raíz no es un verbo
+spaCy sm + concordancia,42,2,gato el persigue ratón el,falso positivo,orden de palabras alterado
+spaCy sm + concordancia,48,3,el gato la persigue,falso negativo,la raíz no es un verbo
+spaCy sm + concordancia,50,3,el gato come y duerme,falso negativo,la raíz no es un verbo
+spaCy sm + concordancia,51,3,el libro que el niño lee es nuevo,falso negativo,la raíz no es un verbo
+spaCy sm + concordancia,56,3,el gato es negro,falso negativo,la raíz no es un verbo
+spaCy sm + concordancia,60,3,el gato que duerme en la casa que Juan compró come el pan,falso negativo,la raíz no es un verbo
+spaCy sm + concordancia,62,3,Juan y María son rubio y morena respectivamente,falso negativo,la raíz no es un verbo
+spaCy sm + concordancia,64,3,cuando llegó Pedro los niños corrieron,falso negativo,número sujeto-verbo: niños (Plur) vs llegó (Sing)
+spaCy sm + concordancia,68,3,los niños que duerme corren,falso positivo,discordancia verbo-antecedente en relativa
+spaCy sm + concordancia,71,3,el gato persigue al ratón con con,falso positivo,secuencia agramatical de preposiciones
+spaCy md (crudo),31,2,la gata que duerme come el pan,error de etiquetado,"esperado ('gata', 'comer', 'pan') obtenido ('-', 'gata', '-')"
+spaCy md (crudo),36,2,la gatos negros persiguen al ratón,falso positivo,discordancia determinante-sustantivo
+spaCy md (crudo),37,2,el gato negro persiguen al ratón,falso positivo,discordancia sujeto-verbo
+spaCy md (crudo),38,2,los niños duerme,falso positivo,discordancia sujeto-verbo
+spaCy md (crudo),39,2,las niñas pequeño leen un libro,falso positivo,discordancia sustantivo-adjetivo
+spaCy md (crudo),40,2,el niña lee un libro,falso positivo,discordancia de género det-sustantivo
+spaCy md (crudo),41,2,una gato corre,falso positivo,discordancia de género det-sustantivo
+spaCy md (crudo),42,2,gato el persigue ratón el,falso positivo,orden de palabras alterado
+spaCy md (crudo),43,2,el persigue gato al ratón,falso positivo,orden de palabras alterado
+spaCy md (crudo),44,2,la niña lee un libro nuevos,falso positivo,discordancia sustantivo-adjetivo en objeto
+spaCy md (crudo),45,2,los gatos negra persiguen al ratón,falso positivo,discordancia sustantivo-adjetivo
+spaCy md (crudo),60,3,el gato que duerme en la casa que Juan compró come el pan,error de etiquetado,"esperado ('gato', 'comer', 'pan') obtenido ('-', 'gato', '-')"
+spaCy md (crudo),67,3,el gato que corre persiguen al ratón,falso positivo,discordancia a distancia a través de una relativa
+spaCy md (crudo),68,3,los niños que duerme corren,falso positivo,discordancia verbo-antecedente en relativa
+spaCy md (crudo),69,3,los niños de la escuela duerme,falso positivo,discordancia con atractor (sustantivo intermedio)
+spaCy md (crudo),70,3,la niña que lee el libro corren,falso positivo,discordancia a distancia tras relativa con objeto
+spaCy md (crudo),71,3,el gato persigue al ratón con con,falso positivo,secuencia agramatical de preposiciones
+spaCy md + concordancia,31,2,la gata que duerme come el pan,falso negativo,la raíz no es un verbo
+spaCy md + concordancia,51,3,el libro que el niño lee es nuevo,falso negativo,la raíz no es un verbo
+spaCy md + concordancia,56,3,el gato es negro,falso negativo,la raíz no es un verbo
+spaCy md + concordancia,60,3,el gato que duerme en la casa que Juan compró come el pan,falso negativo,la raíz no es un verbo
+spaCy md + concordancia,62,3,Juan y María son rubio y morena respectivamente,falso negativo,la raíz no es un verbo
+spaCy md + concordancia,68,3,los niños que duerme corren,falso positivo,discordancia verbo-antecedente en relativa
+spaCy md + concordancia,71,3,el gato persigue al ratón con con,falso positivo,secuencia agramatical de preposiciones
