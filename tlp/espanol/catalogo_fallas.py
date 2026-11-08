@@ -1,7 +1,7 @@
 """catalogo_fallas.py - Fase 1: intento de extender la CFG al español y documentación formal de los puntos de falla.
 
 Para cada fenómeno se muestra (1) qué hace el parser, (2) la REGLA o rasgo que falla, (3) la clase del
-fenómeno y (4) su nivel en la jerarquía de Chomsky.  Distingue tres cosas que el proyecto original mezclaba:
+fenómeno y (4) su nivel en la jerarquía de Chomsky.  Distingue cinco clases de causa (A–E) para no confundir «gramática pequeña» con «límite de las CFG»:
 
   A. Falla del FRAGMENTO     la CFG podría cubrirlo añadiendo reglas/rasgos; el parser falla por alcance.
   B. Límite de la TÉCNICA    es libre de contexto pero rompe LL(1) o exige retroceso (ambigüedad estructural).
@@ -28,7 +28,7 @@ CATALOGO = [
     ("come el pan", "sujeto tácito (pro-drop)", "A", "Tipo 2",
      "O → SN SV (el sujeto es obligatorio)",
      "Basta O → SV. Lo que se pierde es el SN que fijaba el número; se recupera con el rasgo del verbo. "
-     "No es un límite de las CFG (el proyecto original lo afirmaba por error)."),
+     "No es un límite de las CFG."),
     ("Juan y María leen un libro", "coordinación nominal", "A", "Tipo 2",
      "SN → PN (no existe SN → SN y SN)",
      "SN → SN 'y' SN con rasgo número=pl en el resultado: CF con rasgos finitos. Introduce ambigüedad."),
@@ -50,16 +50,34 @@ CATALOGO = [
      "concordancia sujeto–verbo",
      "Rechazada correctamente: el núcleo del SN sujeto es 'niños' (pl). Un modelo puramente estadístico puede "
      "dejarse atraer por 'escuela' (sg)."),
-    ("Juan y María son rubio y morena respectivamente", "dependencias cruzadas (respectivamente)", "C", "Tipo 1 / suavemente sensible al contexto",
-     "no existe una CFG que lo capture para k arbitrario",
-     "Patrón x1…xk y1…yk con xi~yi (copia, como {ww}). Interceptado con un lenguaje regular produce {ww}, que no es "
-     "libre de contexto (lema de bombeo) ⇒ el fenómeno no es CF. Es un argumento análogo al del alemán suizo "
-     "(Shieber, 1985); para el español se apoya en una idealización (k no acotado) y es discutible como hecho empírico."),
+    ("Juan y María son rubio y morena respectivamente", "dependencias cruzadas (respectivamente)", "C",
+     "Tipo 1 / suavemente sensible al contexto (argumento teórico)",
+     "ninguna regla concreta: el parser ni siquiera llega a aplicar reglas (vocabulario fuera del léxico)",
+     "ARGUMENTO TEÓRICO (no lo demuestra el parser). Con k pares el patrón x1…xk y1…yk exige xi~yi (concordancia "
+     "cruzada, como la copia {ww}). Intersectado con un lenguaje regular se obtiene {ww}, que no es libre de contexto "
+     "(lema de bombeo); como las CFG se cierran bajo intersección con regulares, el fenómeno no sería CF si k no se acota. "
+     "Es un argumento análogo al de Shieber (1985) para el alemán suizo, pero aquí descansa en una idealización "
+     "(k ilimitado) y no es un hecho empírico establecido para el español. Para k acotado (p. ej. k ≤ 2) basta una CFG "
+     "con reglas explícitas, así que ninguna oración corta de prueba puede refutar a las CFG."),
     ("el libro come la casa", "anomalía semántica", "D", "—",
      "ninguna (la gramática la ACEPTA)",
      "Las restricciones de selección ('comer' pide sujeto animado) son semánticas. Una CFG no debe resolverlas; "
      "spaCy tampoco las rechaza."),
 ]
+
+# Qué demuestra EJECUTAR el parser sobre cada oración (no es lo mismo que el análisis formal de arriba).
+EVIDENCIA = {
+    "el gato la persigue": "Rechazo por regla ausente (SV → V …): falla del fragmento, no de la clase.",
+    "come el pan": "Rechazo por regla ausente (O → SN SV): falla del fragmento, no de la clase.",
+    "Juan y María leen un libro": "Rechazo por léxico (falta «y»): NO prueba nada sobre las CFG.",
+    "la niña que el gato persigue corre": "Rechazo por regla ausente (relativa de objeto): falla del fragmento.",
+    "¿dónde está el gato?": "Rechazo por léxico («dónde», «está»): NO prueba nada sobre las CFG.",
+    "el hombre ve al gato con el telescopio": "Acepta con 2 árboles: demuestra la ambigüedad (ver §4). Que no sea LL(1) es argumento teórico.",
+    "el gato que corre persiguen al ratón": "Rechazo por la regla de concordancia: la gramática resuelve el fenómeno.",
+    "los niños de la escuela duerme": "Rechazo por la regla de concordancia: la gramática resuelve el fenómeno.",
+    "Juan y María son rubio y morena respectivamente": "Rechazo por léxico (6 palabras fuera del léxico): NO demuestra ningún límite de las CFG; el límite de clase es solo el argumento teórico.",
+    "el libro come la casa": "Acepta (1 árbol): la anomalía es semántica, no sintáctica.",
+}
 
 
 def contar_derivaciones():
@@ -75,15 +93,15 @@ def main():
     out = ["# Fase 1 — Puntos de falla de la CFG al extenderla al español", ""]
     p = ParserEspanol()
     out += ["## 1. Catálogo de fallas", "",
-            "| # | Oración | Fenómeno | Clase | Nivel | ¿Parser acepta? | Diagnóstico del parser (regla que falla) |",
-            "|---|---|---|---|---|---|---|"]
+            "| # | Oración | Fenómeno | Clase | Nivel | ¿Parser acepta? | Diagnóstico del parser | Qué demuestra la ejecución |",
+            "|---|---|---|---|---|---|---|---|"]
     for i, (o, fen, cl, niv, regla, _) in enumerate(CATALOGO, 1):
         arbol, diag = p.parse(o)
-        out.append(f"| {i} | `{o}` | {fen} | {cl} | {niv} | {'SÍ' if arbol else 'NO'} | {diag} |")
+        out.append(f"| {i} | `{o}` | {fen} | {cl} | {niv} | {'SÍ' if arbol else 'NO'} | {diag} | {EVIDENCIA[o]} |")
     out += ["", "Clases: A = falla del fragmento (la CFG podría cubrirlo) · B = límite de la técnica (ambigüedad, no LL(1)) · "
-            "C = límite de la clase (no libre de contexto) · D = fuera de la sintaxis · E = bien manejada: la gramática la resuelve correctamente.", "", "## 2. Análisis formal por fenómeno", ""]
+            "C = límite de la clase (no libre de contexto; solo como argumento teórico) · D = fuera de la sintaxis · E = bien manejada: la gramática la resuelve correctamente.", "", "**Lectura honesta de la columna «Qué demuestra la ejecución»:** un rechazo por vocabulario fuera del léxico (filas 3, 5 y 9) o por una regla que simplemente no se escribió (filas 1, 2 y 4) no demuestra que una CFG sea insuficiente. Solo las filas 6–8 y 10 muestran un comportamiento de la gramática ejecutada que sustenta una afirmación; el límite de clase (fila 9) es un argumento teórico.", "", "## 2. Análisis formal por fenómeno", ""]
     for i, (o, fen, cl, niv, regla, expl) in enumerate(CATALOGO, 1):
-        out += [f"**{i}. {fen}** (`{o}`) — Clase {cl}, {niv}.  ", f"Regla/rasgo implicado: {regla}.  ", expl, ""]
+        out += [f"**{i}. {fen}** (`{o}`) — Clase {cl}, {niv}. Regla/rasgo implicado: {regla}.", "", expl, ""]
 
     nred = contar_reglas_compactas()
     _, npura = cfg_nltk()
@@ -104,7 +122,7 @@ def main():
             "exigen una pila: el lenguaje no es regular (Tipo 3) pero sí libre de contexto (Tipo 2). "]
     arbol, _ = analizar("int x = " + "(" * 40 + "1" + ")" * 40 + ";")
     out.append(f"Prueba: 40 niveles de paréntesis anidados se analizan correctamente: {arbol is not None}. "
-               "El español con rasgos finitos queda también en Tipo 2; solo las dependencias cruzadas no acotadas lo exceden.")
+               "El fragmento de español con rasgos finitos implementado queda también en Tipo 2; lo que podría excederlo (dependencias cruzadas no acotadas) es un argumento teórico, no algo que esta ejecución demuestre.")
     texto = "\n".join(out) + "\n"
     os.makedirs(os.path.join(DIR, "resultados"), exist_ok=True)
     with open(os.path.join(DIR, "resultados", "fase1_fallas.md"), "w", encoding="utf-8") as f:

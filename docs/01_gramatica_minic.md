@@ -1,4 +1,6 @@
-# Mini-C: subconjunto del lenguaje formal (Fase 1)
+# Anexo A — Mini-C: gramática, FIRST/FOLLOW y manejo de errores (Fase 1)
+
+Anexo del [Informe técnico](INFORME_TECNICO_FASE1.md), §2.
 
 ## Alcance
 Subconjunto de C con: declaraciones (`int x;`, `int x = e;`), asignación, `if / else`, `while`, `print(e);`,

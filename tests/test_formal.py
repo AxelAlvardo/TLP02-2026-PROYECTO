@@ -1,4 +1,4 @@
-"""Pruebas del lenguaje formal (Mini-C).  Desde la raíz de fase1/:  python -m unittest tests.test_formal -v
+"""Pruebas del lenguaje formal (Mini-C).  Desde la raíz del repositorio:  python -m unittest tests.test_formal -v
 
 Los casos de entrada viven como archivos en casos/formal/validos/*.mc (deben ACEPTARSE) y
 casos/formal/invalidos/*.mc (deben RECHAZARSE; la 1.ª línea `// ESPERADO: <fragmento>` indica el mensaje).

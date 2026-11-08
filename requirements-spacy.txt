@@ -1,0 +1,3 @@
+# OPCIONAL: contraste con spaCy.  Después de instalar:  python -m spacy download es_core_news_sm
+-r requirements.txt
+spacy>=3.7

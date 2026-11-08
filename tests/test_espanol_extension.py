@@ -5,7 +5,7 @@ Afirman el COMPORTAMIENTO documentado de cada fenómeno del catálogo (qué acep
 import unittest
 
 from tlp.espanol import ParserEspanol, acepta_nltk, cfg_nltk
-from tlp.espanol.catalogo_fallas import CATALOGO
+from tlp.espanol.catalogo_fallas import CATALOGO, EVIDENCIA
 
 # oración -> (¿el parser la acepta?, fragmento esperado del diagnóstico)
 ESPERADO = {
@@ -30,6 +30,14 @@ class TestCatalogo(unittest.TestCase):
     def test_catalogo_completo(self):
         self.assertEqual({c[0] for c in CATALOGO}, set(ESPERADO))
         self.assertEqual({c[2] for c in CATALOGO}, {"A", "B", "C", "D", "E"})
+
+    def test_cada_fenomeno_declara_que_demuestra_la_ejecucion(self):
+        self.assertEqual(set(EVIDENCIA), set(ESPERADO))
+        # «respectivamente»: el rechazo es léxico; el límite de clase es argumento teórico y así debe quedar dicho
+        fila = next(c for c in CATALOGO if "respectivamente" in c[0])
+        self.assertIn("ARGUMENTO TEÓRICO", fila[5])
+        self.assertIn("NO demuestra", EVIDENCIA[fila[0]])
+        self.assertIn("fuera del léxico", self.p.parse(fila[0])[1])
 
     def test_comportamiento_por_fenomeno(self):
         for oracion, (acepta, fragmento) in ESPERADO.items():

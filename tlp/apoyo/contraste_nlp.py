@@ -1,14 +1,16 @@
-"""contraste_nlp.py - Contrasta, oración por oración, tres analizadores:
+"""contraste_nlp.py - Contrasta, oración por oración, los analizadores sobre las MISMAS oraciones:
 
-  1. Parser propio (CFG con rasgos)              -> ACEPTA / RECHAZA + regla que falla
-  2. NLTK ChartParser sobre la CFG pura expandida -> ACEPTA / RECHAZA + nº de árboles
-  3. spaCy (modelo estadístico)                   -> SIEMPRE devuelve un análisis; nunca "rechaza"
+  1. Parser propio (CFG con rasgos)               -> ACEPTA / RECHAZA + regla que falla      [siempre]
+  2. NLTK ChartParser sobre la CFG pura expandida -> ACEPTA / RECHAZA + nº de árboles        [siempre]
+  3. spaCy (modelo estadístico, OPCIONAL)         -> siempre devuelve un análisis; no rechaza [solo si hay modelo]
 
-Idea central de la Fase 1: la CFG es un RECONOCEDOR (decide pertenencia al lenguaje); spaCy es un
-ANALIZADOR ESTADÍSTICO ROBUSTO (siempre produce la mejor estructura, sin garantía de gramaticalidad).
+NLTK se usa aquí como motor CFG independiente (sin descargar corpus): confirma que el parser propio y una CFG sin
+rasgos aceptan lo mismo y cuenta TODAS las lecturas. NO es un analizador estadístico: el contraste "reconocedor
+formal vs. modelo estadístico" solo existe si spaCy y su modelo están instalados. Si no lo están, el informe lo
+dice explícitamente y no incluye ninguna columna de spaCy.
 
 Uso:  python -m tlp.apoyo.contraste_nlp                       # las 10 oraciones del catálogo
-      python -m tlp.apoyo.contraste_nlp "los niños duerme"    # una oración
+      python -m tlp.apoyo.contraste_nlp "los niños duerme"    # una oración (no escribe informe)
       python -m tlp.apoyo.contraste_nlp --modelo es_core_news_md
 Escribe resultados/contraste_nlp.md (solo con el catálogo completo).
 """
@@ -24,11 +26,20 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 
 
 def cargar_spacy(modelo: str = "es_core_news_sm"):
+    """Devuelve el pipeline de spaCy o None si spaCy / el modelo no están instalados (dependencia opcional)."""
     try:
         import spacy
-        return spacy.load(modelo)
-    except (ImportError, OSError):
+    except ImportError:
         return None
+    try:
+        return spacy.load(modelo)
+    except OSError:                      # paquete spaCy presente pero modelo no descargado
+        return None
+
+
+def version_spacy(nlp) -> str:
+    import spacy
+    return f"spaCy {spacy.__version__}, modelo {nlp.meta.get('lang', '?')}_{nlp.meta.get('name', '?')} {nlp.meta.get('version', '?')}"
 
 
 def _numero(tok) -> str:
@@ -71,7 +82,7 @@ def imprimir(filas: list[dict]) -> None:
         print("  NLTK (CFG pura):", f["nltk"])
         s = f["spacy"]
         if s is None:
-            print("  spaCy         : modelo no instalado (python -m spacy download es_core_news_sm)")
+            print("  spaCy         : NO EJECUTADO (opcional: pip install -r requirements-spacy.txt && python -m spacy download es_core_news_sm)")
             continue
         print(f"  spaCy         : raíz={s['raiz']} sujeto={s['sujeto']} objeto={s['objeto']}  "
               f"discordancia(heurística)={'SÍ' if s['discordancia_heuristica'] else 'no'}")
@@ -81,23 +92,39 @@ def imprimir(filas: list[dict]) -> None:
 
 def escribir_informe(filas: list[dict], modelo: str) -> str:
     clase = {c[0]: (c[1], c[2]) for c in CATALOGO}
-    out = ["# Fase 1 — Contraste: parser propio (CFG) vs NLTK vs spaCy", "",
-           f"Modelo spaCy: `{modelo}`. La columna «spaCy» siempre produce un análisis; la heurística de discordancia "
-           "compara el rasgo Number del sujeto y del verbo raíz (es una verificación propia, no una función de spaCy).", "",
-           "| # | Oración | Fenómeno (clase) | Parser propio | NLTK (CFG pura) | spaCy: raíz / sujeto / objeto | ¿Detecta discordancia? |",
-           "|---|---|---|---|---|---|---|"]
+    hay_spacy = all(f["spacy"] is not None for f in filas)
+    out = ["# Fase 1 — Contraste: parser propio (CFG) vs NLTK" + (" vs spaCy" if hay_spacy else ""), "",
+           "## 1. Parser propio vs NLTK (siempre reproducible, sin descargar modelos)", "",
+           "NLTK actúa como motor CFG independiente sobre la gramática expandida sin rasgos. Lo que muestra: (a) que la "
+           "concordancia con rasgos finitos sigue siendo libre de contexto (ambos aceptan exactamente lo mismo) y (b) "
+           "TODAS las lecturas de una oración ambigua. Lo que NO muestra: capacidad de análisis estadístico; NLTK aquí "
+           "tampoco puede analizar nada que la CFG no cubra.", "",
+           "| # | Oración | Fenómeno (clase) | Parser propio | NLTK (CFG pura) |", "|---|---|---|---|---|"]
     for i, f in enumerate(filas, 1):
         fen, cl = clase.get(f["oracion"], ("—", "—"))
-        s = f["spacy"]
-        sp = f"{s['raiz']} / {s['sujeto']} / {s['objeto']}" if s else "n/d"
-        disc = ("SÍ" if s and s["discordancia_heuristica"] else "no") if s else "n/d"
-        out.append(f"| {i} | `{f['oracion']}` | {fen} ({cl}) | {f['propio']} | {f['nltk']} | {sp} | {disc} |")
-    out += ["", "**Lectura.** Donde el parser propio RECHAZA (clítico, pro-drop, coordinación, relativa de objeto, "
-            "interrogativa, dependencias cruzadas) spaCy igualmente entrega una estructura: no hay noción de "
-            "«fuera del lenguaje», solo la mejor estimación. A la inversa, donde la CFG acepta con ambigüedad "
-            "(PP-attachment) devuelve todas las lecturas sin elegir, mientras spaCy elige una sola. "
-            "Las discordancias (filas 7 y 8) las rechaza la gramática por construcción; spaCy las analiza como "
-            "si fueran gramaticales salvo que se añada una verificación externa.", ""]
+        out.append(f"| {i} | `{f['oracion']}` | {fen} ({cl}) | {f['propio']} | {f['nltk']} |")
+    out += ["", "## 2. spaCy (opcional)", ""]
+    if not hay_spacy:
+        out += [f"**No generada**: spaCy o el modelo `{modelo}` no están instalados en el entorno que produjo este informe, "
+                "así que no se ejecutó ninguna comparación con spaCy. Para generarla: "
+                f"`pip install -r requirements-spacy.txt` y `python -m spacy download {modelo}`, y volver a ejecutar "
+                "`python -m tlp.apoyo.contraste_nlp`.", ""]
+    else:
+        import spacy
+        nlp = spacy.load(modelo)
+        out += [f"Ejecutado con {version_spacy(nlp)}. spaCy siempre produce un análisis; la columna de discordancia "
+                "compara el rasgo Number del sujeto y del verbo raíz y es una heurística PROPIA, no una función de spaCy.", "",
+                "| # | Oración | spaCy: raíz / sujeto / objeto | ¿Discordancia (heurística)? |", "|---|---|---|---|"]
+        for i, f in enumerate(filas, 1):
+            s = f["spacy"]
+            out.append(f"| {i} | `{f['oracion']}` | {s['raiz']} / {s['sujeto']} / {s['objeto']} | "
+                       f"{'SÍ' if s['discordancia_heuristica'] else 'no'} |")
+        out += ["", "**Lectura** (sobre estas 10 oraciones y este modelo, sin generalizar). Donde el parser propio rechaza por "
+                "alcance (clítico, pro-drop, coordinación, relativa de objeto, interrogativa), spaCy igualmente entrega una "
+                "estructura: no existe la noción de «fuera del lenguaje». En `el gato la persigue` esa estructura es "
+                "incorrecta (*persigue* etiquetado como NOUN); en la relativa de objeto es correcta. Ante la ambigüedad "
+                "de adjunción spaCy elige una sola lectura sin indicarlo. Las discordancias (filas 7 y 8) la gramática "
+                "las rechaza por construcción; spaCy las analiza como si fueran gramaticales.", ""]
     ruta = os.path.join(RAIZ, "resultados", "contraste_nlp.md")
     os.makedirs(os.path.dirname(ruta), exist_ok=True)
     with open(ruta, "w", encoding="utf-8") as fh:

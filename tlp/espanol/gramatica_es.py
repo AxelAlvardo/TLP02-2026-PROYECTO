@@ -462,7 +462,6 @@ def contar_reglas_compactas() -> int:
 
 if __name__ == "__main__":
     import sys
-    from arbol import dibujar_arbol
     oracion = " ".join(sys.argv[1:]) or "el gato negro persigue al ratón"
     arbol, diag = ParserEspanol().parse(oracion)
     if arbol:
