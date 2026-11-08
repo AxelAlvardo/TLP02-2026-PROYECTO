@@ -1,9 +1,4 @@
-matplotlib>=3.7
-numpy
 nltk>=3.8
 spacy>=3.7
-# Solo para el experimento con LLM (Fase 2):
-anthropic>=0.40
-# Opcional (comparación con HuggingFace, solo etiquetado):
-# transformers
-# torch
+matplotlib>=3.7
+# Modelo de spaCy (se instala aparte):  python -m spacy download es_core_news_sm

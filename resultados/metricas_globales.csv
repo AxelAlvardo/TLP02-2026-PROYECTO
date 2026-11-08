@@ -1,6 +1,0 @@
-sistema,TP,FP,FN,TN,precision,cobertura,f1,rechazo_correcto,exactitud_estructural,errores_etiquetado,n_evaluables,exactitud_upos,oraciones_upos,ms_por_oracion
-Parser propio (CFG),37,0,19,15,1.0,0.6607,0.7957,1.0,0.8409,0,44,,,0.0214
-spaCy sm (crudo),56,15,0,0,0.7887,1.0,0.8819,0.0,0.9318,3,44,0.9897,36,3.7049
-spaCy sm + concordancia,48,3,8,12,0.9412,0.8571,0.8972,0.8,0.9091,1,44,0.9897,36,3.7049
-spaCy md (crudo),56,15,0,0,0.7887,1.0,0.8819,0.0,0.9545,2,44,0.9949,36,3.9373
-spaCy md + concordancia,51,2,5,13,0.9623,0.9107,0.9358,0.8667,0.9545,0,44,0.9949,36,3.9373

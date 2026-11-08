@@ -61,7 +61,7 @@ Las restricciones de selección ('comer' pide sujeto animado) son semánticas. U
 
 ## 3. La concordancia con rasgos finitos NO sale de Tipo 2
 
-La gramática compacta tiene 10 reglas con rasgos. Expandida a una CFG pura (cada combinación género×número×animacidad×… pasa a ser un no terminal) tiene **338 producciones**. La concordancia cuesta tamaño de gramática, no poder expresivo: por eso ‘concordancia de género y número’ no es el punto donde la CFG se rompe. El parser recursivo descendente y el ChartParser de NLTK sobre esa CFG pura aceptan las mismas oraciones (verificado en `tests/test_suite.py`).
+La gramática compacta tiene 10 reglas con rasgos. Expandida a una CFG pura (cada combinación género×número×animacidad×… pasa a ser un no terminal) tiene **338 producciones**. La concordancia cuesta tamaño de gramática, no poder expresivo: por eso ‘concordancia de género y número’ no es el punto donde la CFG se rompe. El parser recursivo descendente y el ChartParser de NLTK sobre esa CFG pura aceptan las mismas oraciones (verificado en `tests/test_espanol_extension.py`).
 
 ## 4. Ambigüedad estructural (adjunción de frases preposicionales)
 
