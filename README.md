@@ -28,8 +28,8 @@ Python **3.10 o superior**.
 
 ## Instalar (desde la raíz del repositorio clonado)
 ```bash
-git clone <URL-DEL-REPOSITORIO>
-cd <CARPETA-CLONADA>              # la raíz: aquí están run_fase1.py y la carpeta tlp/
+git clone https://github.com/AxelAlvardo/TLP02-2026-PROYECTO
+cd TLP02-2026-PROYECTO              # la raíz: aquí están run_fase1.py y la carpeta tlp/
 
 python -m venv .venv
 # Linux/macOS:  source .venv/bin/activate
