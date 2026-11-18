@@ -1,0 +1,10 @@
+# Fase 2: comparación del parser propio con spaCy y HuggingFace  (python -m tlp.espanol.comparacion_nlp)
+# Después de instalar:  python -m spacy download es_core_news_sm
+# El modelo de HuggingFace (wietsedv/xlm-roberta-base-ft-udpos28-es, ~1,1 GB) se descarga solo la primera vez.
+-r requirements-spacy.txt
+transformers>=4.40
+torch>=2.2
+# Fase 2: experimento con LLM  (python -m tlp.espanol.llm_experimento; la clave y el modelo van en .env)
+anthropic>=0.40
+openai>=1.50
+google-genai>=1.0

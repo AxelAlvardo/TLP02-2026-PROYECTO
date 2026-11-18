@@ -1,0 +1,42 @@
+# Prompt del experimento con LLM (Fase 2, punto 6). Lo usa:  python -m tlp.espanol.llm_experimento
+# Las líneas que empiezan con "#" son comentarios: NO se envían al LLM.
+# El script reemplaza estas marcas:  {gramatica} = reglas de producción (REGLAS_BNF)
+#                                    {lexico}    = léxico con sus rasgos
+#                                    {oracion}   = la oración que se analiza (obligatoria)
+# Zero-shot: borra toda la sección EJEMPLOS RESUELTOS.  Few-shot: deja, agrega o quita ejemplos
+# (cada ejemplo es una línea "Oración: ..." seguida de su respuesta en JSON).
+
+=== SISTEMA ===
+Eres un analizador sintáctico FORMAL. Aplicas ÚNICAMENTE la gramática y el léxico que se te dan. No uses tu conocimiento general del español: si una oración es correcta en español pero la gramática no puede derivarla, debes RECHAZARLA; si la gramática la deriva aunque suene rara, debes ACEPTARLA. Responde SOLO con un objeto JSON.
+
+=== USUARIO ===
+GRAMÁTICA:
+{gramatica}
+
+LÉXICO (forma:rasgos):
+{lexico}
+
+Responde con JSON: {"acepta": true|false, "arbol": "<árbol en notación de paréntesis o null>", "regla_que_falla": "<regla o restricción violada, o null>", "razon": "<una frase>"}. Formato del árbol: (O (SN (Det[m,sg] el) (N[m,sg] gato)) (SV (V[pres,sg] corre))) — cada hoja es una palabra; los rasgos van entre corchetes en las categorías léxicas.
+
+EJEMPLOS RESUELTOS:
+
+Oración: el pájaro canta
+{"acepta": true, "arbol": "(O (SN (Det[m,sg] el) (N[m,sg] pájaro)) (SV (V[pres,sg] canta)))", "regla_que_falla": null, "razon": "derivable"}
+
+Oración: la gata come una manzana
+{"acepta": true, "arbol": "(O (SN (Det[f,sg] la) (N[f,sg] gata)) (SV (V[pres,sg] come) (SN (Det[f,sg] una) (N[f,sg] manzana))))", "regla_que_falla": null, "razon": "derivable"}
+
+Oración: los perros que duermen corren
+{"acepta": true, "arbol": "(O (SN (Det[m,pl] los) (N[m,pl] perros) (Rel (Que que) (SV (V[pres,pl] duermen)))) (SV (V[pres,pl] corren)))", "regla_que_falla": null, "razon": "derivable"}
+
+Oración: los pájaro cantan
+{"acepta": false, "arbol": null, "regla_que_falla": "falla en la posición 1 ('pájaro'), regla «concordancia Det–N»: 'los' (m,pl) no concuerda con 'pájaro' (m,sg)", "razon": "no derivable con la gramática dada"}
+
+Oración: canta
+{"acepta": false, "arbol": null, "regla_que_falla": "falla en la posición 0 ('canta'), regla «SN → Det N | PN»: se esperaba un determinante o nombre propio y llegó 'canta'", "razon": "no derivable con la gramática dada"}
+
+Oración: el niño canta y corre
+{"acepta": false, "arbol": null, "regla_que_falla": "palabra(s) fuera del léxico: y", "razon": "no derivable con la gramática dada"}
+
+Analiza esta oración:
+Oración: {oracion}

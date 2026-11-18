@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto TLP explicado desde cero</title>
+<style>
+:root{
+  --bg:#fbfaf7; --card:#ffffff; --ink:#1d1d1f; --mute:#5f6368; --line:#d9d6cf; --soft:#f1efe9;
+  --acc:#2f6fdb; --acc-soft:#e6eefc; --ok:#1f8a4c; --ok-soft:#e3f4ea; --bad:#c23b3b; --bad-soft:#fbe7e7;
+  --warn:#b26b00; --warn-soft:#fff1d9;
+  --kw:#8a3ffc; --id:#0f7b8a; --num:#c2410c; --op:#4b5563; --relop:#b5179e;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#141518; --card:#1d1f23; --ink:#ececec; --mute:#a3a7ad; --line:#3a3d43; --soft:#25282d;
+    --acc:#7aa7ff; --acc-soft:#22314d; --ok:#5fd18f; --ok-soft:#1d3527; --bad:#ff7b7b; --bad-soft:#3d2223;
+    --warn:#ffb84d; --warn-soft:#3a2c14; --kw:#c49bff; --id:#5fd0de; --num:#ff9a62; --op:#c4c8cf; --relop:#f07bd8; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:16px 16px 80px}
+nav{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap;padding:8px 12px}
+nav a{display:inline-block;color:var(--mute);text-decoration:none;font-size:13px;padding:4px 9px;border-radius:999px;margin-right:2px}
+nav a:hover{background:var(--soft);color:var(--ink)}
+h1{font-size:30px;line-height:1.2;margin:28px 0 6px}
+h2{font-size:23px;margin:0 0 10px;line-height:1.25}
+h3{font-size:17px;margin:18px 0 6px}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 22px 18px;margin:22px 0}
+.num{display:inline-block;width:30px;height:30px;border-radius:50%;background:var(--acc);color:#fff;text-align:center;line-height:30px;font-weight:700;font-size:15px;margin-right:8px}
+.lead{color:var(--mute);font-size:17px}
+.box{border-radius:10px;padding:12px 14px;margin:12px 0}
+.idea{background:var(--acc-soft)}
+.defensa{background:var(--warn-soft);border-left:4px solid var(--warn)}
+.defensa b:first-child{color:var(--warn)}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}
+code{background:var(--soft);padding:1px 5px;border-radius:4px}
+pre{background:var(--soft);padding:12px;border-radius:8px;overflow-x:auto;font-size:14px;line-height:1.45}
+table{border-collapse:collapse;width:100%;font-size:14.5px;margin:10px 0}
+th,td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+th{color:var(--mute);font-weight:600}
+button{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 12px;border-radius:8px;cursor:pointer}
+button:hover{border-color:var(--acc)}
+button.pri{background:var(--acc);color:#fff;border-color:var(--acc)}
+button.chip{font-size:13px;padding:4px 10px;border-radius:999px}
+textarea,input[type=text],select{font:inherit;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;width:100%}
+select{font-family:inherit;width:auto}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:700px){.grid2{grid-template-columns:1fr} section{padding:16px}}
+.panel{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg);min-height:60px}
+.panel h4{margin:0 0 6px;font-size:13px;color:var(--mute);text-transform:uppercase;letter-spacing:.04em}
+.tok{display:inline-block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;border:1px solid var(--line);border-radius:6px;padding:2px 6px;margin:2px;background:var(--card);position:relative}
+.tok small{display:block;font-size:10px;color:var(--mute);font-family:system-ui,sans-serif}
+.tok.kw{border-color:var(--kw);color:var(--kw)} .tok.id{border-color:var(--id);color:var(--id)}
+.tok.num{border-color:var(--num);color:var(--num)} .tok.op{border-color:var(--op)} .tok.relop{border-color:var(--relop);color:var(--relop)}
+.tok.eof{border-style:dashed;color:var(--mute)}
+.tok.done{opacity:.35}
+.tok.cur{outline:3px solid var(--acc);outline-offset:1px}
+.src span{white-space:pre;border-radius:3px}
+.src .skip{color:var(--mute);opacity:.6}
+.src .hl{background:var(--acc-soft);outline:2px solid var(--acc)}
+.src{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;background:var(--soft);padding:10px;border-radius:8px;line-height:1.7;overflow-x:auto}
+.narr{font-size:15.5px;background:var(--acc-soft);border-radius:10px;padding:10px 14px;margin:10px 0;min-height:52px}
+.narr.err{background:var(--bad-soft);color:var(--bad)} .narr.ok{background:var(--ok-soft);color:var(--ok)}
+.stack{display:flex;flex-direction:column;gap:4px}
+.frame{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:var(--card)}
+.frame.top{border-color:var(--acc);background:var(--acc-soft);font-weight:700}
+.tree,.tree ul{list-style:none;margin:0;padding:0}
+.tree ul{padding-left:16px}
+.tree li{position:relative;padding-left:14px;margin:1px 0}
+.tree li::before{content:"";position:absolute;left:0;top:0;bottom:0;border-left:1px solid var(--line)}
+.tree li::after{content:"";position:absolute;left:0;top:13px;width:11px;border-top:1px solid var(--line)}
+.tree li:last-child::before{bottom:auto;height:13px}
+.tree>li{padding-left:0}.tree>li::before,.tree>li::after{display:none}
+.node{display:inline-block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;padding:0 6px;border-radius:5px}
+.node.nt{background:var(--warn-soft);font-weight:600}
+.node.leaf{background:var(--acc-soft);font-style:italic}
+.node.hl{outline:2px solid var(--acc)}
+.node.bad{background:var(--bad-soft);color:var(--bad)}
+.ctrl button{min-width:42px}
+.pill{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;background:var(--soft);color:var(--mute)}
+.res{padding:10px 12px;border-radius:10px;margin-top:8px}
+.res.ok{background:var(--ok-soft);color:var(--ok)} .res.bad{background:var(--bad-soft);color:var(--bad)}
+.check{margin:3px 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.card{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg);cursor:pointer}
+.card .hid{display:none;margin-top:8px;font-size:14.5px;border-top:1px dashed var(--line);padding-top:8px}
+.card.open .hid{display:block}
+.tag{display:inline-block;font-weight:700;font-size:13px;border-radius:6px;padding:1px 7px;margin-right:6px;color:#fff}
+.tA{background:#6b7280}.tB{background:#2f6fdb}.tC{background:#b5179e}.tD{background:#b26b00}.tE{background:#1f8a4c}
+.chars span{display:inline-block;width:26px;height:30px;line-height:30px;text-align:center;font-family:ui-monospace,monospace;font-size:18px;border:1px solid var(--line);margin:1px;border-radius:5px;background:var(--card)}
+.chars span.cur{outline:3px solid var(--acc)} .chars span.done{opacity:.4}
+.states{display:flex;gap:6px;flex-wrap:wrap}
+.st{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:13px}
+.st.on{border-color:var(--acc);background:var(--acc-soft);font-weight:700}
+.st.dead.on{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.vstack{display:flex;flex-direction:column-reverse;gap:3px;min-height:40px;align-items:flex-start}
+.plate{font-family:ui-monospace,monospace;border:1px solid var(--acc);background:var(--acc-soft);border-radius:5px;padding:1px 14px}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px;margin:10px 0;background:var(--bg)}
+.q .opt{display:block;width:100%;text-align:left;margin:5px 0}
+.q .opt.right{background:var(--ok-soft);border-color:var(--ok)} .q .opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.q .exp{display:none;margin-top:6px;font-size:14.5px;color:var(--mute)} .q.answered .exp{display:block}
+.score{font-weight:700}
+.emoji{font-size:30px;letter-spacing:4px}
+svg text{fill:var(--ink);font-family:system-ui,sans-serif}
+.small{font-size:14px;color:var(--mute)}
+</style>
+</head>
+<body>
+<nav>
+<a href="#inicio">Inicio</a><a href="#s1">1 · Lenguajes</a><a href="#s2">2 · Chomsky</a><a href="#s3">3 · Lexer</a><a href="#s4">4 · Gramática</a><a href="#s5">5 · Parser paso a paso</a><a href="#s6">6 · LL(1)</a><a href="#s7">7 · Español</a><a href="#s8">8 · Ambigüedad</a><a href="#s9">9 · Catálogo A–E</a><a href="#s10">10 · spaCy</a><a href="#s11">11 · Mapa del repo</a><a href="#s12">12 · Practica</a>
+</nav>
+<main>
+<h1 id="inicio">Tu proyecto de TLP, explicado desde cero</h1>
+<p class="lead">Cada sección construye sobre la anterior. Lee en orden y juega con los simuladores. Al final hay preguntas tipo defensa para practicar.</p>
+
+<div class="box idea"><b>La pregunta del proyecto en una frase:</b> con las mismas reglas que usamos para describir un lenguaje de programación, ¿se puede describir el español? ¿Hasta dónde llegamos y en qué punto fallamos?<br><br>
+Para responderla hicieron tres cosas:
+<b>(1)</b> un analizador para un C chiquito («Mini-C»), donde todo funciona perfecto;
+<b>(2)</b> el mismo tipo de analizador para un pedazo del español, anotando dónde falla y por qué;
+<b>(3)</b> una comparación con dos herramientas reales, NLTK y spaCy.</div>
+
+<!-- ============ 1 ============ -->
+<section id="s1">
+<h2><span class="num">1</span>¿Qué es un «lenguaje» para un informático?</h2>
+<p>En la vida diaria un lenguaje es algo que hablamos. En esta materia es algo mucho más simple y frío:</p>
+<div class="box idea"><b>Un lenguaje es un conjunto de cadenas.</b> Nada más. Por ejemplo, «todas las cadenas de C que compilan» es un lenguaje, y «todas las oraciones correctas del español» es otro.</div>
+<p>¿Cómo describes un conjunto que tiene infinitas cadenas? No puedes escribirlas todas. Lo que haces es escribir <b>reglas</b> que las generan. A ese conjunto de reglas se le llama <b>gramática</b>.</p>
+<p>Piensa en una receta:</p>
+<pre>Oración  →  Sujeto  Verbo
+Sujeto   →  "el gato"  |  "la niña"
+Verbo    →  "duerme"   |  "corre"</pre>
+<p>La flecha <code>→</code> se lee «se puede reemplazar por» y la barra <code>|</code> significa «o». Partiendo de <i>Oración</i> y reemplazando, puedes obtener «el gato duerme», «la niña corre», etc. A las cosas con mayúscula (Oración, Sujeto) se les llama <b>no terminales</b>, porque todavía hay que reemplazarlas. A las palabras finales («gato», «duerme») se les llama <b>terminales</b>.</p>
+<p>Un programa que recibe una cadena y responde <b>«sí, esto sigue las reglas»</b> (o «no, y el error está aquí») se llama <b>analizador</b> o <b>parser</b>. Eso es lo que construyeron.</p>
+<div class="box defensa"><b>Para la defensa:</b> «Una gramática es un conjunto finito de reglas que describe un lenguaje posiblemente infinito. El parser decide si una entrada pertenece a ese lenguaje y, si pertenece, construye su árbol de análisis».</div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section id="s2">
+<h2><span class="num">2</span>La jerarquía de Chomsky: «qué tanta memoria necesitas»</h2>
+<p>No todos los lenguajes son igual de difíciles. Chomsky los ordenó en 4 niveles. La forma más fácil de entenderlo es así: <b>cada nivel necesita una máquina con más memoria</b> para reconocerlo.</p>
+<svg viewBox="0 0 600 250" width="100%" role="img" aria-label="Jerarquía de Chomsky como cajas anidadas">
+ <rect x="5" y="5" width="590" height="240" rx="14" fill="none" stroke="#9aa0a6" stroke-width="1.5"/>
+ <text x="20" y="28" font-size="14" font-weight="700">Tipo 0 · Sin restricciones → Máquina de Turing</text>
+ <rect x="30" y="40" width="540" height="195" rx="12" fill="none" stroke="#b5179e" stroke-width="1.5"/>
+ <text x="45" y="62" font-size="14" font-weight="700">Tipo 1 · Sensible al contexto → {ww}, «respectivamente» (teórico)</text>
+ <rect x="55" y="75" width="490" height="150" rx="10" fill="rgba(47,111,219,.10)" stroke="#2f6fdb" stroke-width="2"/>
+ <text x="70" y="97" font-size="14" font-weight="700">Tipo 2 · Libre de contexto (CFG) → Autómata de PILA</text>
+ <text x="70" y="116" font-size="13">El PARSER de Mini-C · paréntesis anidados · el fragmento de español</text>
+ <rect x="80" y="130" width="440" height="80" rx="8" fill="rgba(31,138,76,.12)" stroke="#1f8a4c" stroke-width="2"/>
+ <text x="95" y="155" font-size="14" font-weight="700">Tipo 3 · Regular → Autómata FINITO</text>
+ <text x="95" y="175" font-size="13">El LEXER de Mini-C: números, nombres, palabras clave</text>
+ <text x="95" y="195" font-size="12">(lo que vieron en clase con autómatas finitos)</text>
+</svg>
+<p>Cada caja contiene a la de adentro. Tu proyecto vive sobre todo en las cajas verde y azul, y discute el borde con la morada.</p>
+
+<h3>Simulador: ¿por qué los paréntesis necesitan una pila?</h3>
+<p>Un <b>autómata finito</b> solo tiene una cantidad fija de estados. Es como alguien que cuenta con los dedos de una mano: llega hasta un límite y después se pierde. Un <b>autómata de pila</b> tiene una pila de platos: por cada <code>(</code> pone un plato y por cada <code>)</code> quita uno. La pila puede crecer todo lo que haga falta.</p>
+<p>Aquí el autómata finito solo puede «contar» hasta 3. Prueba con 4 o más paréntesis anidados:</p>
+<div class="row">
+ <input type="text" id="parIn" value="((()))" style="max-width:260px">
+ <button class="chip" data-par="(())">(())</button>
+ <button class="chip" data-par="(((())))">4 anidados</button>
+ <button class="chip" data-par="(()">(()  incompleto</button>
+ <button class="chip" data-par="())(">())(</button>
+</div>
+<div class="row ctrl"><button id="parReset">⏮</button><button id="parStep" class="pri">Siguiente carácter ▶</button><button id="parAll">Hasta el final ⏭</button></div>
+<div class="chars" id="parChars"></div>
+<div class="grid2" style="margin-top:10px">
+ <div class="panel"><h4>Autómata finito (memoria fija: 3)</h4><div class="states" id="afStates"></div><div id="afMsg" class="small" style="margin-top:6px"></div></div>
+ <div class="panel"><h4>Autómata de pila (memoria ilimitada)</h4><div class="vstack" id="apStack"></div><div id="apMsg" class="small" style="margin-top:6px"></div></div>
+</div>
+<div class="box defensa"><b>Para la defensa:</b> «Los paréntesis anidados funcionan como el lenguaje aⁿbⁿ: hay que contar sin límite, y un autómata finito no puede hacerlo. Por eso Mini-C no es regular (Tipo 3), sino libre de contexto (Tipo 2). En nuestro parser, la <b>pila de llamadas recursivas</b> cumple el papel de la pila del autómata». Una de las pruebas usa 200 niveles de paréntesis.</div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section id="s3">
+<h2><span class="num">3</span>El lexer: de letras sueltas a «palabras» (tokens)</h2>
+<p>La computadora recibe el programa como una tira de caracteres: <code>i</code>, <code>n</code>, <code>t</code>, espacio, <code>x</code>… Antes de entender la estructura, hay que agrupar esas letras en piezas con significado. A esas piezas se les llama <b>tokens</b>. Es como separar una oración en palabras antes de analizar la gramática.</p>
+<table>
+<tr><th>Tipo de token</th><th>Ejemplos</th><th>Cómo lo reconoce (expresión regular)</th></tr>
+<tr><td><span class="tok kw">palabra clave</span></td><td>int, if, else, while, print</td><td>Primero se lee como nombre; si está en la lista de reservadas, se vuelve palabra clave</td></tr>
+<tr><td><span class="tok id">ID</span></td><td>x, contador, a1</td><td><code>[A-Za-z_][A-Za-z_0-9]*</code></td></tr>
+<tr><td><span class="tok num">NUM</span></td><td>5, 48</td><td><code>\d+</code></td></tr>
+<tr><td><span class="tok relop">RELOP</span></td><td>== != &lt; &gt; &lt;= &gt;=</td><td>Todas las comparaciones se agrupan en un solo tipo</td></tr>
+<tr><td><span class="tok op">símbolo</span></td><td>+ - * / = ( ) { } ;</td><td>Cada uno es su propio tipo</td></tr>
+<tr><td><span class="small">se ignora</span></td><td>espacios, saltos de línea, <code>// comentarios</code></td><td>No producen token, pero los saltos sirven para contar la línea</td></tr>
+</table>
+<h3>Simulador del lexer</h3>
+<textarea id="lexIn" rows="3">int x = 5 + 3 * 2; // comentario
+if (x >= 10) { print(x); }</textarea>
+<div class="row ctrl"><button id="lexReset">⏮ Reiniciar</button><button id="lexStep" class="pri">Siguiente pedazo ▶</button><button id="lexAll">Todo ⏭</button>
+<button class="chip" id="lexBad">Probar con un carácter ilegal (@)</button></div>
+<div class="src" id="lexSrc"></div>
+<div class="narr" id="lexNarr">Presiona «Siguiente pedazo» para ver cómo el lexer recorre el texto.</div>
+<div class="panel"><h4>Tokens producidos (lo que recibe el parser)</h4><div id="lexToks"></div></div>
+<div class="box defensa"><b>Para la defensa:</b> «El lexer está en <code>lexer.py</code> y usa una sola expresión regular con grupos con nombre. Cada token guarda tipo, valor, línea y columna, y al final se agrega <code>$</code>, que marca el fin de la entrada. Un carácter ilegal produce un <b>error</b>: nunca se ignora en silencio. Es Tipo 3 porque todo se describe con expresiones regulares, que equivalen a autómatas finitos».</div>
+</section>
+
+<!-- ============ 4 ============ -->
+<section id="s4">
+<h2><span class="num">4</span>La gramática de Mini-C: las «recetas»</h2>
+<p>Ahora que tenemos tokens, falta decir <b>en qué orden pueden aparecer</b>. Estas son las reglas reales de su proyecto (están en <code>gramatica.py</code>, en un diccionario llamado <code>GRAMATICA</code>):</p>
+<pre>Programa → Stmts                         (un programa es una lista de sentencias)
+Stmts    → Stmt Stmts | ε                (ε = "nada", la lista puede acabar)
+Stmt     → int ID Init ;                 (declaración:  int x = 5;)
+         | ID = Expr ;                   (asignación:   x = x - 1;)
+         | if ( Cond ) Bloque Else       (if con else opcional)
+         | while ( Cond ) Bloque
+         | print ( Expr ) ;
+         | Bloque
+Init     → = Expr | ε
+Else     → else Bloque | ε
+Bloque   → { Stmts }
+Cond     → Expr CondR        CondR → RELOP Expr | ε
+Expr     → Term ExprR        ExprR → + Term ExprR | - Term ExprR | ε
+Term     → Factor TermR      TermR → * Factor TermR | / Factor TermR | ε
+Factor   → NUM | ID | ( Expr ) | - Factor</pre>
+<h3>Tres trucos de diseño que te van a preguntar</h3>
+<p><b>① Precedencia por «pisos».</b> Una expresión (Expr) se arma con sumas de términos. Un término (Term) se arma con multiplicaciones de factores. Un factor es un número, una variable o algo entre paréntesis. La multiplicación vive en un piso <b>más abajo</b>, así que en el árbol queda más abajo y <b>se calcula primero</b>. Lo vas a ver en vivo en el simulador de la sección 5.</p>
+<p><b>② Sin recursión izquierda.</b> La forma «natural» de escribir la suma sería <code>Expr → Expr + Term</code>. Pero el parser de ustedes funciona con una función por regla: <code>expr()</code> llamaría a <code>expr()</code>, que llamaría a <code>expr()</code>… sin leer ningún token. Sería un bucle infinito. Por eso se reescribe como <code>Expr → Term ExprR</code>: primero se lee un término y luego «el resto» (<code>ExprR</code>).</p>
+<p><b>③ Llaves obligatorias.</b> En C real, en <code>if (a) if (b) x=1; else x=2;</code> no queda claro de cuál <code>if</code> es el <code>else</code>. A eso se le llama el «else colgante». En Mini-C <code>if</code> y <code>while</code> siempre llevan <code>{ }</code>, así que esa duda nunca aparece.</p>
+<div class="box idea"><b>¿Qué es ε?</b> Es la cadena vacía. <code>Init → = Expr | ε</code> significa «después del nombre puede venir <code>= valor</code>, o nada». Así se escriben las partes opcionales.</div>
+</section>
+
+<!-- ============ 5 ============ -->
+<section id="s5">
+<h2><span class="num">5</span>El parser, paso a paso (simulador principal)</h2>
+<p>El parser de ustedes es <b>descendente recursivo</b>. Hay <b>una función por cada no terminal</b>: <code>stmt()</code>, <code>expr()</code>, <code>term()</code>, <code>factor()</code>… Cada función sigue su regla: si la regla dice «aquí va un Term», llama a <code>term()</code>; si dice «aquí va un ;», llama a <code>consumir(';')</code>.</p>
+<ul>
+<li><b>lookahead</b> (en el código, <code>self.la</code>): el token que el parser está mirando en este momento. Es el único que mira.</li>
+<li><b>consumir(tipo)</b>: «espero este tipo de token». Si llega, avanza al siguiente; si no, lanza un error con línea y columna.</li>
+<li><b>pila de llamadas</b>: qué funciones están «abiertas» en este momento. Fíjate cómo crece y se vacía. Esa es la pila del autómata de pila.</li>
+</ul>
+<div class="row">
+ <button class="chip" data-prog="int x = 5 + 3 * 2;">5 + 3 * 2</button>
+ <button class="chip" data-prog="x = (1 + 2) * 3;">(1 + 2) * 3</button>
+ <button class="chip" data-prog="x = 8 - 3 - 2;">8 - 3 - 2</button>
+ <button class="chip" data-prog="if (x > 10) { print(x); } else { x = x - 1; }">if / else</button>
+ <button class="chip" data-prog="int a = 48;&#10;int b = 18;&#10;while (a != b) {&#10;  if (a > b) { a = a - b; } else { b = b - a; }&#10;}&#10;print(a);">Euclides</button>
+ <button class="chip" data-prog="x = 1 + ;">❌ x = 1 + ;</button>
+ <button class="chip" data-prog="int x = 1 2;">❌ int x = 1 2;</button>
+ <button class="chip" data-prog="if x > 1 { print(x); }">❌ if sin ( )</button>
+</div>
+<textarea id="pIn" rows="3">int x = 5 + 3 * 2;</textarea>
+<div class="row ctrl">
+ <button id="pLoad">Cargar código</button>
+ <button id="pFirst">⏮</button><button id="pPrev">◀</button>
+ <button id="pNext" class="pri">Siguiente paso ▶</button>
+ <button id="pPlay">▶ Auto</button><button id="pLast">⏭</button>
+ <span class="pill" id="pCount"></span>
+</div>
+<div class="narr" id="pNarr"></div>
+<div class="panel" style="margin-bottom:10px"><h4>Tokens · el borde azul es el lookahead</h4><div id="pToks"></div></div>
+<div class="grid2">
+ <div class="panel"><h4>Pila de llamadas (arriba = función actual)</h4><div class="stack" id="pStack"></div></div>
+ <div class="panel"><h4>Árbol de análisis que se va construyendo</h4><ul class="tree" id="pTree"></ul></div>
+</div>
+<h3>La misma corrida como tabla: traza LL(1) (pila · entrada · acción)</h3>
+<p>El simulador de arriba muestra la pila de <b>llamadas</b>. Hay otra forma de ver exactamente lo mismo, que seguramente vieron en clase: una tabla con una <b>pila explícita</b>, la entrada que falta y la acción de cada paso. Usa el mismo código que cargaste arriba.</p>
+<div class="box defensa"><b>¿Y shift / reduce?</b> No se usan aquí. Shift y reduce son las acciones de los parsers <b>ascendentes</b> (LR, SLR, LALR, como yacc o bison), que arman el árbol desde las hojas hacia la raíz. El parser de ustedes es <b>descendente</b> (LL): arma el árbol desde la raíz hacia las hojas, y sus acciones son otras:
+<ul style="margin:6px 0 0">
+<li><b>Derivar:</b> el tope de la pila es un no terminal. Se busca en la tabla <code>M[tope, lookahead]</code> qué regla usar y se reemplaza el tope por el lado derecho de esa regla.</li>
+<li><b>Emparejar:</b> el tope es un terminal igual al token de entrada. Se sacan los dos y se avanza.</li>
+<li><b>Aceptar:</b> la pila y la entrada llegan juntas a <code>$</code>.</li>
+<li><b>Error:</b> la celda de la tabla está vacía, o el terminal del tope no coincide con la entrada.</li>
+</ul>
+Si en la defensa les preguntan por shift/reduce, la respuesta es: «nuestro parser es descendente LL(1), por eso sus acciones son derivar y emparejar; shift/reduce es de los parsers ascendentes LR».</div>
+<div class="row ctrl">
+ <button id="tFirst">⏮</button><button id="tPrev">◀</button>
+ <button id="tNext" class="pri">Siguiente fila ▶</button><button id="tLast">⏭ Toda la traza</button>
+ <span class="pill" id="tCount"></span>
+</div>
+<div class="narr" id="tNarr"></div>
+<div style="max-height:430px;overflow:auto;border:1px solid var(--line);border-radius:10px">
+<table id="tTable" style="margin:0"><thead><tr><th style="width:36px">#</th><th>Pila (tope a la izquierda)</th><th>Entrada que falta</th><th>Acción</th></tr></thead><tbody></tbody></table>
+</div>
+<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:600">Ver la tabla LL(1) completa M[no terminal, token] (la celda usada en el paso actual se marca)</summary>
+<p class="small">Esta tabla se calcula en la página con los mismos FIRST y FOLLOW de la sección 6. Cada celda dice qué regla usar. Que ninguna celda tenga dos reglas es justamente lo que significa «0 conflictos».</p>
+<div style="overflow-x:auto"><table id="mTable" class="mono" style="font-size:12.5px;white-space:nowrap"></table></div>
+</details>
+<table style="margin-top:14px">
+<tr><th></th><th>Descendente LL(1): su proyecto</th><th>Ascendente LR: no es su caso</th></tr>
+<tr><td>Cómo arma el árbol</td><td>De la raíz (Programa) a las hojas</td><td>De las hojas (tokens) a la raíz</td></tr>
+<tr><td>Acciones</td><td>Derivar · emparejar</td><td>Shift (desplazar) · reduce (reducir)</td></tr>
+<tr><td>Tabla</td><td>M[no terminal, token]</td><td>ACTION / GOTO con estados</td></tr>
+<tr><td>Cómo se escribe</td><td>A mano: una función por no terminal</td><td>Normalmente con un generador (yacc, bison)</td></tr>
+</table>
+<div class="box idea"><b>Prueba esto:</b> en «5 + 3 * 2» fíjate que <code>3 * 2</code> queda dentro de un <b>Term</b>, y que el <code>+</code> cuelga directamente de <b>Expr</b>, más arriba. Esa es la precedencia. En «8 - 3 - 2» el ciclo de <code>expr()</code> va acumulando de izquierda a derecha: <code>(8 - 3) - 2</code>. Eso es la asociatividad por la izquierda.</div>
+<div class="box idea"><b>¿Y el árbol de su código?</b> El simulador muestra el árbol de análisis completo, con Expr, Term y Factor. El código de ustedes, en cambio, devuelve un árbol <b>simplificado</b>: <code>Op(+)</code> con dos hijos, sin los no terminales auxiliares. Por ejemplo, para el programa de Euclides imprime <code>While → Cond(!=) → a, b</code>. Es la misma estructura, solo que más compacta. El informe lo menciona como limitación.</div>
+<h3>Errores y «modo pánico»</h3>
+<p>Prueba los ejemplos con ❌. El parser se detiene en el primer token que ninguna regla permite y dice <b>línea, columna y qué esperaba</b>. Con la opción <code>--recuperar</code>, el código real <b>no se detiene</b>: anota el error, se salta tokens hasta el siguiente <code>;</code> o <code>}</code> y sigue analizando. A eso se le llama <b>modo pánico</b>, y así puede reportar varios errores en una sola corrida. Lo pueden mostrar con:</p>
+<pre>python -m tlp.formal casos/formal/demo_errores.mc --recuperar</pre>
+<div class="box defensa"><b>Para la defensa:</b> «Es un parser descendente recursivo: una función por no terminal y un solo token de anticipación. <code>consumir()</code> verifica el token esperado y, si no coincide, lanza <code>ErrorSintactico</code> con línea y columna. Con <code>recuperar=True</code> se sincroniza en <code>;</code> o <code>}</code>, que es el modo pánico».</div>
+</section>
+
+<!-- ============ 6 ============ -->
+<section id="s6">
+<h2><span class="num">6</span>LL(1), FIRST y FOLLOW: «¿me basta ver un token?»</h2>
+<p>En el simulador habrás visto que en cada <code>Stmt</code> el parser decide qué regla usar <b>con solo mirar el token siguiente</b>. Eso no es suerte: la gramática se diseñó así a propósito.</p>
+<p><b>LL(1)</b> significa: se lee de izquierda a derecha (<b>L</b>), se arma la derivación por la izquierda (<b>L</b>) y se mira <b>1</b> token adelante.</p>
+<h3>FIRST: «con qué puede empezar»</h3>
+<p>FIRST(X) es el conjunto de tokens con los que puede empezar X. Toca un token y mira qué regla de Stmt escogería el parser:</p>
+<div class="row" id="firstBtns"></div>
+<div class="res ok" id="firstOut">Elige un token.</div>
+<p>Como cada alternativa de Stmt empieza con un token <b>distinto</b>, nunca hay que adivinar. Si dos alternativas empezaran con lo mismo, sería un <b>conflicto</b> y la gramática ya no sería LL(1).</p>
+<h3>FOLLOW: «qué puede venir después»</h3>
+<p>FOLLOW se necesita para las reglas que pueden ser ε (nada). Ejemplo: después de <code>if (…) {…}</code>, ¿viene un <code>else</code> o termina el if? El parser decide así: si ve <code>else</code>, usa <code>Else → else Bloque</code>; si ve otra cosa (algo que está en FOLLOW, como <code>}</code>, <code>$</code> u otra sentencia), usa <code>Else → ε</code>. Funciona porque <code>else</code> <b>no</b> está en FOLLOW(Else).</p>
+<h3>Cómo lo verifica el código</h3>
+<p><code>calcular_first_follow()</code> calcula los conjuntos «por punto fijo»: recorre todas las reglas una y otra vez, agregando tokens, hasta que en una vuelta completa nada cambia (es el <code>while cambio:</code> del código). Después, <code>verificar_ll1()</code> revisa cada par de alternativas:</p>
+<ol><li>si sus FIRST se cruzan, hay conflicto;</li><li>si una puede ser ε y la otra empieza con algo que está en FOLLOW, hay conflicto.</li></ol>
+<p>Para Mini-C el resultado es <b>0 conflictos</b>, y eso es lo que imprime <code>python -m tlp.formal</code>: «Gramática LL(1): SÍ».</p>
+<div class="box defensa"><b>Para la defensa:</b> «LL(1) significa que con un solo token de anticipación siempre sabemos qué producción aplicar. No lo afirmamos a ojo: <code>verificar_ll1()</code> calcula FIRST y FOLLOW sobre el mismo diccionario de la gramática y encuentra 0 conflictos». Si te preguntan por la debilidad: el parser se escribió <b>a mano</b>, no se genera de ese diccionario. Que corresponda a la gramática se comprueba con las pruebas, no automáticamente.</div>
+</section>
+
+<!-- ============ 7 ============ -->
+<section id="s7">
+<h2><span class="num">7</span>Ahora el español: ¿funciona la misma idea?</h2>
+<p>Hicieron un segundo parser en <code>gramatica_es.py</code>. La gran diferencia con Mini-C es que en español las palabras tienen que <b>concordar</b>: «la gato» está mal, «los niño» está mal, «los niños duerme» está mal.</p>
+<h3>El truco: rasgos</h3>
+<p>Cada palabra del léxico (unas 181 formas) trae etiquetas: <b>género</b> (m/f), <b>número</b> (sg/pl), <b>tiempo</b>, tipo de verbo (transitivo, intransitivo, o que exige «que») y <b>animacidad</b> (humano, animal, cosa). La animacidad sirve para la «a personal»: se dice «ve <b>a</b> Juan», pero «ve el libro».</p>
+<h3>Juego: arma una oración y mira si concuerda</h3>
+<div class="row">
+ <select id="cDet"></select><select id="cN"></select><select id="cAdj"></select><select id="cV"></select>
+</div>
+<div id="cOut"></div>
+<div class="grid2" style="margin-top:8px">
+ <div class="panel"><h4>Árbol con rasgos</h4><ul class="tree" id="cTree"></ul></div>
+ <div class="panel"><h4>La misma regla como CFG pura (sin rasgos)</h4><div id="cPure" class="mono small"></div></div>
+</div>
+
+<h3>¿Por qué esto importa? Las 10 reglas vs. las 338 producciones</h3>
+<p>Con rasgos, la gramática es corta: <b>10 reglas</b>. Pero alguien podría decir: «eso de revisar rasgos ya no es una CFG, es otra cosa». Para responder, la función <code>cfg_nltk()</code> <b>expande</b> los rasgos: en vez de una regla <code>SN → Det N</code> «que revisa el género», crea una regla por cada combinación, como <code>SN_f_pl → Det_f_pl N_f_pl</code> (lo ves en el panel de la derecha del juego). Como el género tiene 2 valores, el número 2 y la animacidad 3, las combinaciones son <b>finitas</b>. El resultado es una CFG normal de <b>338 producciones</b>.</p>
+<p>Después le pasan las mismas oraciones a NLTK (que solo entiende CFG puras), y <b>acepta exactamente lo mismo</b> que su parser.</p>
+<div class="box defensa"><b>Para la defensa (este es el argumento más fuerte):</b> «La concordancia de género y número <b>no</b> saca al español de Tipo 2. Como los rasgos tienen valores finitos, se pueden convertir en no terminales. Eso cuesta tamaño de gramática (de 10 reglas pasamos a 338 producciones), pero no poder expresivo. NLTK lo confirma».</div>
+
+<h3>¿Por qué este parser es distinto al de Mini-C? Retroceso con <code>yield</code></h3>
+<p>En español, con un solo token muchas veces <b>no</b> se puede decidir. Ejemplo: después de «el hombre ve al gato», si llega «con…», ¿eso va con el gato o con el verbo ver? Las dos opciones son válidas. Por eso este parser no es LL(1), sino de <b>retroceso</b>:</p>
+<ul>
+<li>Cada función es un <b>generador</b> (usa <code>yield</code>): en lugar de devolver UN análisis, va entregando <b>todos</b> los posibles, uno por uno.</li>
+<li>Si un camino choca con algo (por ejemplo, la concordancia falla), se descarta y se prueba el siguiente.</li>
+<li>Al final solo se quedan los análisis que consumieron la oración completa. Así pueden <b>contar cuántos árboles</b> tiene una oración.</li>
+</ul>
+<p><b>Diagnóstico:</b> la función <code>_fallo()</code> recuerda la posición <b>más lejana</b> a la que llegó el parser y por qué falló ahí. Por eso los mensajes dicen cosas como: «falla en la posición 5 ('duerme'), regla concordancia sujeto–verbo: 'duerme' es sg pero el sujeto es pl».</p>
+<p><b>Subordinación:</b> <code>SV → V Que O</code> permite «Pedro dice que Ana piensa que el gato duerme». Es recursiva, porque una oración puede contener otra oración. <code>Rel → Que SV</code> permite «el gato <i>que duerme</i>».</p>
+</section>
+
+<!-- ============ 8 ============ -->
+<section id="s8">
+<h2><span class="num">8</span>Ambigüedad: «el hombre ve al gato con el telescopio»</h2>
+<p>¿Quién tiene el telescopio? La gramática no lo sabe, y por eso devuelve <b>los dos árboles</b>.</p>
+<div class="grid2">
+ <div class="panel"><h4>Lectura 1 · «con el telescopio» va con VER</h4><div class="emoji">🧔🔭 ➜ 🐱</div><p class="small">El hombre usa el telescopio para ver al gato. El SP cuelga del SV.</p><ul class="tree" id="amb1"></ul></div>
+ <div class="panel"><h4>Lectura 2 · «con el telescopio» va con GATO</h4><div class="emoji">🧔 ➜ 🐱🔭</div><p class="small">El gato que tiene un telescopio. El SP cuelga del SN.</p><ul class="tree" id="amb2"></ul></div>
+</div>
+<p>Si encadenas más frases («…en el parque», «…de la ciudad»), el número de árboles crece así:</p>
+<table><tr><th>Palabras</th><th>Árboles (su parser)</th><th>Árboles (NLTK)</th></tr>
+<tr><td>8</td><td>2</td><td>2</td></tr><tr><td>11</td><td>5</td><td>5</td></tr><tr><td>14</td><td>14</td><td>14</td></tr></table>
+<p>2, 5, 14 son los <b>números de Catalan</b>, una sucesión famosa que cuenta, entre otras cosas, las formas de poner paréntesis en una expresión.</p>
+<div class="box idea"><b>¿Por qué la ambigüedad rompe LL(1)?</b> Al terminar «el gato», si llega «con…», el parser tiene dos opciones válidas: meter el SP dentro del SN del gato, o cerrar el SN y meterlo en el SV. FIRST(SP) termina dentro de FOLLOW, que es justo el conflicto que busca <code>verificar_ll1()</code>. El informe dice que esta comprobación «no forma parte del repositorio», pero se puede correr en vivo con la misma función:
+<pre>python -c "from tlp.formal.gramatica import verificar_ll1
+g={'Programa':[['SN','SV']],'SN':[['Det','N','SPS']],'SV':[['V','Obj','SPS']],'Obj':[['SN']],'SPS':[['SP','SPS'],['ε']],'SP':[['P','SN']]}
+print(verificar_ll1(g))"</pre>
+Resultado: <code>SPS: FIRST(['SP','SPS']) ∩ FOLLOW(SPS) ≠ ∅</code>. (El símbolo inicial tiene que llamarse <code>Programa</code>, porque la función lo trae fijo.)</div>
+<div class="box defensa"><b>Para la defensa:</b> «La ambigüedad no saca a la gramática de Tipo 2, pero una gramática ambigua nunca es LL(1). Por eso el parser del español usa retroceso. La CFG da todas las lecturas, pero no puede elegir: elegir requiere significado o estadística, que es lo que aporta un modelo como spaCy».</div>
+</section>
+
+<!-- ============ 9 ============ -->
+<section id="s9">
+<h2><span class="num">9</span>El catálogo de fallas: las clases A, B, C, D y E</h2>
+<p>Este es el corazón del análisis (<code>catalogo_fallas.py</code>). La idea clave: <b>no todo rechazo significa lo mismo</b>. Que el parser rechace una oración puede ser porque faltó escribir una regla, y eso no demuestra que las CFG «no sirvan». Toca cada tarjeta para ver qué demuestra:</p>
+<div class="cards" id="cards"></div>
+
+<h3>La clase C, explicada con dibujos: anidado vs. cruzado</h3>
+<p>Las CFG manejan bien las dependencias <b>anidadas</b>: el primero que abre es el último que cierra, como en los paréntesis. Lo que no pueden manejar en general son las dependencias <b>cruzadas</b>:</p>
+<svg viewBox="0 0 640 190" width="100%" role="img" aria-label="Dependencias anidadas frente a cruzadas">
+ <text x="20" y="20" font-size="13" font-weight="700">ANIDADO (CFG puede) · como ( [ ] )</text>
+ <g font-size="15">
+  <text x="30" y="85">el gato</text><text x="110" y="85">que corre</text><text x="200" y="85">persigue</text>
+ </g>
+ <path d="M60 68 Q140 10 225 68" fill="none" stroke="#2f6fdb" stroke-width="2"/>
+ <path d="M135 68 Q150 45 160 68" fill="none" stroke="#1f8a4c" stroke-width="2"/>
+ <text x="20" y="115" font-size="12">Los arcos NO se cruzan: uno está adentro del otro.</text>
+ <text x="340" y="20" font-size="13" font-weight="700">CRUZADO (CFG no puede, en general)</text>
+ <g font-size="15">
+  <text x="345" y="85">Juan</text><text x="395" y="85">María</text><text x="455" y="85">rubio</text><text x="510" y="85">morena</text>
+ </g>
+ <path d="M360 68 Q415 15 470 68" fill="none" stroke="#b5179e" stroke-width="2"/>
+ <path d="M412 68 Q470 15 530 68" fill="none" stroke="#b26b00" stroke-width="2"/>
+ <text x="340" y="115" font-size="12">1.º con 1.º y 2.º con 2.º: los arcos SE CRUZAN.</text>
+ <text x="20" y="160" font-size="13">Con k pares sin límite, el patrón x₁…xₖ y₁…yₖ se parece al lenguaje de copia {ww}, que NO es libre de contexto</text>
+ <text x="20" y="180" font-size="13">(se demuestra con el lema de bombeo). Es el mismo tipo de argumento de Shieber (1985) para el alemán suizo.</text>
+</svg>
+<div class="box defensa"><b>Para la defensa, con honestidad:</b> «El parser rechaza la oración de "respectivamente" solo porque faltan 6 palabras en el léxico, así que ese rechazo <b>no prueba nada</b>. El límite de clase es un <b>argumento teórico</b> y depende de suponer k ilimitado. Con 2 o 3 pares, una CFG con reglas explícitas basta». El informe dice esto mismo, y que lo sepas decir te hace ver sólido.</div>
+</section>
+
+<!-- ============ 10 ============ -->
+<section id="s10">
+<h2><span class="num">10</span>NLTK y spaCy: el portero y el adivinador</h2>
+<div class="grid2">
+ <div class="panel"><h4>Su parser y NLTK = el portero estricto 🚪</h4><p>Tiene una lista de reglas. Si la oración las cumple, la deja pasar; si no, la rechaza y dice por qué. Responde: <b>¿la oración pertenece al lenguaje?</b></p><p class="small">NLTK aquí no es estadístico: es otro motor de CFG (ChartParser) que sirve para confirmar que la gramática expandida de 338 producciones acepta lo mismo y para contar los árboles.</p></div>
+ <div class="panel"><h4>spaCy = el adivinador experto 🎯</h4><p>Es un modelo <b>estadístico</b> entrenado con muchos textos. <b>Nunca rechaza</b>: siempre te da su mejor estimación de la estructura. Responde: <b>¿cuál es la estructura más probable?</b></p></div>
+</div>
+<table>
+<tr><th>Oración</th><th>Su parser</th><th>spaCy</th><th>Qué enseña</th></tr>
+<tr><td>los niños de la escuela duerme</td><td>❌ rechaza (concordancia)</td><td>la analiza como si estuviera bien</td><td>spaCy no tiene la noción de «agramatical»</td></tr>
+<tr><td>el gato la persigue</td><td>❌ (falta la regla del clítico)</td><td>etiqueta «persigue» como SUSTANTIVO</td><td>spaCy también se equivoca, y sin avisar</td></tr>
+<tr><td>la niña que el gato persigue corre</td><td>❌ (falta la regla)</td><td>✅ la analiza bien</td><td>spaCy cubre más que una gramática pequeña</td></tr>
+<tr><td>el hombre ve al gato con el telescopio</td><td>✅ 2 árboles</td><td>da 1, sin avisar que hay otra lectura</td><td>la CFG muestra la ambigüedad; spaCy la esconde</td></tr>
+</table>
+<p class="small">La columna de «discordancia» del reporte es una heurística propia del proyecto (compara el número gramatical del sujeto y del verbo), no una función de spaCy. Si te lo preguntan, dilo así.</p>
+<div class="box defensa"><b>Para la defensa:</b> «No son mejores o peores: responden preguntas distintas. El reconocedor formal decide pertenencia; el modelo estadístico produce la mejor estructura posible. Con 10 oraciones y un modelo pequeño no se puede decir cuál es mejor en general. Eso requiere métricas y queda para la Fase 2».</div>
+</section>
+
+<!-- ============ 11 ============ -->
+<section id="s11">
+<h2><span class="num">11</span>Mapa del repositorio: qué hace cada archivo</h2>
+<table>
+<tr><th>Archivo</th><th>Qué hace</th></tr>
+<tr><td><code>tlp/formal/lexer.py</code></td><td>Convierte el texto en tokens (sección 3)</td></tr>
+<tr><td><code>tlp/formal/gramatica.py</code></td><td>La gramática como diccionario, el cálculo de FIRST/FOLLOW y <code>verificar_ll1()</code> (secciones 4 y 6)</td></tr>
+<tr><td><code>tlp/formal/parser.py</code></td><td>El parser descendente recursivo, los errores y el modo pánico (sección 5)</td></tr>
+<tr><td><code>tlp/formal/__main__.py</code></td><td>Permite correr <code>python -m tlp.formal archivo.mc</code></td></tr>
+<tr><td><code>tlp/arbol.py</code></td><td>La clase <code>Node</code> (el árbol). Lo imprime en ASCII, con corchetes o como dibujo PNG con matplotlib</td></tr>
+<tr><td><code>tlp/espanol/gramatica_es.py</code></td><td>El léxico con rasgos, las 10 reglas, el parser con retroceso, <code>cfg_nltk()</code> (las 338 producciones) y <code>extraer_svo()</code></td></tr>
+<tr><td><code>tlp/espanol/catalogo_fallas.py</code></td><td>Las 10 oraciones clasificadas A–E. Genera <code>resultados/fase1_fallas.md</code></td></tr>
+<tr><td><code>tlp/apoyo/contraste_nlp.py</code></td><td>Compara su parser, NLTK y spaCy. Genera <code>resultados/contraste_nlp.md</code></td></tr>
+<tr><td><code>tlp/apoyo/generar_arboles.py</code></td><td>Genera los PNG de <code>resultados/arboles/</code></td></tr>
+<tr><td><code>casos/formal/</code></td><td>12 programas válidos y 13 inválidos de Mini-C</td></tr>
+<tr><td><code>tests/</code></td><td>28 pruebas automáticas (2 se omiten si no hay spaCy)</td></tr>
+<tr><td><code>run_fase1.py</code></td><td>Corre todo en orden: pruebas, demo, catálogo, contraste y árboles</td></tr>
+</table>
+<h3>Demo segura para la defensa</h3>
+<pre>pip install -r requirements.txt                       # ¡hazlo ANTES! sin nltk, 2 pruebas fallan
+python run_fase1.py                                   # todo en orden
+python -m tlp.formal casos/formal/validos/11_euclides.mc
+python -m tlp.formal casos/formal/demo_errores.mc --recuperar
+python -m tlp.espanol.gramatica_es los niños de la escuela duerme
+python -m tlp.apoyo.contraste_nlp "el hombre ve al gato con el telescopio"</pre>
+</section>
+
+<!-- ============ 12 ============ -->
+<section id="s12">
+<h2><span class="num">12</span>Practica: preguntas tipo defensa</h2>
+<p>Contesta sin ver las secciones anteriores. <span class="score" id="score"></span></p>
+<div id="quiz"></div>
+<div class="row"><button id="quizReset">Reiniciar preguntas</button></div>
+</section>
+</main>
+
+<script>
+// ---------------- utilidades ----------------
+const $ = s => document.querySelector(s);
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+function T(label, ...children){ return {label, kind: children.length ? 'nt' : 'leaf', children}; }
+function renderTree(node, hl){
+  const li = el('li'); const s = el('span', 'node ' + node.kind + (node === hl ? ' hl' : ''), node.label); li.appendChild(s);
+  if (node.children.length){ const ul = el('ul'); node.children.forEach(c => ul.appendChild(renderTree(c, hl))); li.appendChild(ul); }
+  return li;
+}
+function showTree(ul, root, hl){ ul.innerHTML = ''; if (root) ul.appendChild(renderTree(root, hl)); }
+
+// ---------------- 2. Paréntesis: AF vs AP ----------------
+const par = { s: '', k: 0 };
+function parLoad(s){ par.s = s.replace(/[^()]/g, ''); par.k = 0; parRender(); }
+function parSim(k){
+  let depth = 0, lost = false, broke = false, stack = [];
+  for (let i = 0; i < k; i++){
+    const c = par.s[i];
+    if (c === '('){ stack.push('('); depth++; if (depth > 3) lost = true; }
+    else { if (stack.length === 0) broke = true; else stack.pop(); depth--; }
+  }
+  return {depth, lost, broke, stack};
+}
+function parRender(){
+  const box = $('#parChars'); box.innerHTML = '';
+  [...par.s].forEach((c, i) => box.appendChild(el('span', i < par.k ? 'done' : (i === par.k ? 'cur' : ''), c)));
+  const r = parSim(par.k), fin = par.k >= par.s.length;
+  const sts = $('#afStates'); sts.innerHTML = '';
+  ['q0','q1','q2','q3'].forEach((q, i) => sts.appendChild(el('div', 'st' + (!r.lost && !r.broke && r.depth === i ? ' on' : ''), q)));
+  sts.appendChild(el('div', 'st dead' + (r.lost || r.broke ? ' on' : ''), '✗'));
+  let af;
+  if (r.broke) af = 'Llegó un ")" que no tenía pareja: se rechaza.';
+  else if (r.lost) af = '¡Se le acabó la memoria! Con más de 3 "(" abiertos ya no sabe cuántos lleva. Ningún autómata FINITO puede contar sin límite.';
+  else if (fin) af = r.depth === 0 ? 'Terminó en q0: acepta.' : 'Terminó con paréntesis abiertos: rechaza.';
+  else af = 'Estado q' + r.depth + ' = "llevo ' + r.depth + ' paréntesis abiertos".';
+  $('#afMsg').textContent = af;
+  const st = $('#apStack'); st.innerHTML = '';
+  if (!r.stack.length) st.appendChild(el('span', 'small', '(pila vacía)'));
+  r.stack.forEach(() => st.appendChild(el('div', 'plate', '(')));
+  let ap;
+  if (r.broke) ap = 'Quiso quitar un plato pero la pila estaba vacía: rechaza.';
+  else if (fin) ap = r.stack.length === 0 ? 'Pila vacía al final: ✅ acepta. Nunca se le acaba la memoria.' : 'Quedaron ' + r.stack.length + ' platos: ❌ faltan ")".';
+  else ap = 'Cada "(" pone un plato y cada ")" quita uno. Platos: ' + r.stack.length + '.';
+  $('#apMsg').textContent = ap;
+}
+$('#parIn').addEventListener('input', e => parLoad(e.target.value));
+document.querySelectorAll('[data-par]').forEach(b => b.onclick = () => { $('#parIn').value = b.dataset.par; parLoad(b.dataset.par); });
+$('#parStep').onclick = () => { if (par.k < par.s.length) par.k++; parRender(); };
+$('#parAll').onclick = () => { par.k = par.s.length; parRender(); };
+$('#parReset').onclick = () => { par.k = 0; parRender(); };
+parLoad($('#parIn').value);
+
+// ---------------- 3. Lexer ----------------
+const KW = new Set(['int','if','else','while','print']);
+const RELOPS = new Set(['==','!=','<','>','<=','>=']);
+function lexPiezas(src){
+  const re = /([ \t\r]+)|(\n)|(\/\/[^\n]*)|(\d+)|([A-Za-z_][A-Za-z_0-9]*)|(==|!=|<=|>=|[-+*\/=<>(){};])/y;
+  const out = []; let i = 0, linea = 1, col0 = 0;
+  while (i < src.length){
+    re.lastIndex = i; const m = re.exec(src); const col = i - col0 + 1;
+    if (!m){ out.push({text: src[i], kind: 'error', linea, col}); return {piezas: out, error: {msg: "carácter ilegal '" + src[i] + "'", linea, col}}; }
+    let p = {text: m[0], linea, col};
+    if (m[1]) p.kind = 'esp';
+    else if (m[2]){ p.kind = 'nl'; linea++; col0 = re.lastIndex; }
+    else if (m[3]) p.kind = 'com';
+    else if (m[4]) Object.assign(p, {kind: 'tok', tipo: 'NUM', clase: 'num'});
+    else if (m[5]){ const k = KW.has(m[5]); Object.assign(p, {kind: 'tok', tipo: k ? m[5] : 'ID', clase: k ? 'kw' : 'id'}); }
+    else { const r = RELOPS.has(m[6]); Object.assign(p, {kind: 'tok', tipo: r ? 'RELOP' : m[6], clase: r ? 'relop' : 'op'}); }
+    out.push(p); i = re.lastIndex;
+  }
+  out.push({text: '', kind: 'eof', linea, col: src.length - col0 + 1});
+  return {piezas: out, error: null};
+}
+function tokenizar(src){
+  const {piezas, error} = lexPiezas(src);
+  if (error) throw {lexico: true, ...error};
+  return piezas.filter(p => p.kind === 'tok' || p.kind === 'eof').map(p => p.kind === 'eof' ? {tipo: '$', valor: '$', clase: 'eof', linea: p.linea, col: p.col} : {tipo: p.tipo, valor: p.text, clase: p.clase, linea: p.linea, col: p.col});
+}
+const lex = {piezas: [], k: 0, error: null};
+function lexLoad(){ const r = lexPiezas($('#lexIn').value); lex.piezas = r.piezas; lex.error = r.error; lex.k = 0; lexRender(); }
+function descTok(p){
+  if (p.tipo === 'NUM') return 'Son dígitos: token NUM.';
+  if (p.clase === 'kw') return '"' + p.text + '" parece un nombre, pero está en la lista de palabras reservadas: token de palabra clave "' + p.text + '".';
+  if (p.tipo === 'ID') return 'Empieza con letra y no es reservada: token ID (identificador, el nombre de una variable).';
+  if (p.tipo === 'RELOP') return '"' + p.text + '" es una comparación: se agrupa como token RELOP.';
+  return '"' + p.text + '" es un símbolo: es su propio token.';
+}
+function lexRender(){
+  const src = $('#lexSrc'); src.innerHTML = '';
+  lex.piezas.forEach((p, i) => {
+    if (p.kind === 'eof') return;
+    const s = el('span', (p.kind === 'tok' ? '' : 'skip') + (i === lex.k - 1 ? ' hl' : ''), p.kind === 'nl' ? '↵\n' : p.text);
+    if (p.kind === 'error'){ s.style.color = 'var(--bad)'; s.style.fontWeight = '700'; }
+    src.appendChild(s);
+  });
+  const toks = $('#lexToks'); toks.innerHTML = '';
+  lex.piezas.slice(0, lex.k).forEach(p => {
+    if (p.kind === 'tok'){ const t = el('span', 'tok ' + p.clase); t.textContent = p.text; t.appendChild(el('small', null, p.tipo + ' · ' + p.linea + ':' + p.col)); toks.appendChild(t); }
+    if (p.kind === 'eof'){ const t = el('span', 'tok eof', '$'); t.appendChild(el('small', null, 'fin')); toks.appendChild(t); }
+  });
+  const n = $('#lexNarr'); n.className = 'narr';
+  if (lex.k === 0){ n.textContent = 'Presiona «Siguiente pedazo» para ver cómo el lexer recorre el texto.'; return; }
+  const p = lex.piezas[lex.k - 1];
+  const msg = {esp: 'Espacios: se saltan, no producen token.', nl: 'Salto de línea: no produce token, pero el contador de línea sube a ' + (p.linea + 1) + '.', com: 'Comentario "//…": se ignora completo hasta el final de la línea.', eof: 'Se acabó el texto: el lexer agrega el token especial $ (fin de entrada). Esta lista es lo que recibe el parser.'}[p.kind];
+  if (p.kind === 'error'){ n.className = 'narr err'; n.textContent = '❌ Línea ' + p.linea + ', col ' + p.col + ": carácter ilegal '" + p.text + "'. Ninguna parte de la expresión regular lo reconoce, así que es un ERROR (no se descarta en silencio)."; return; }
+  n.textContent = msg || descTok(p);
+}
+$('#lexIn').addEventListener('input', lexLoad);
+$('#lexStep').onclick = () => { if (lex.k < lex.piezas.length) lex.k++; lexRender(); };
+$('#lexAll').onclick = () => { lex.k = lex.piezas.length; lexRender(); };
+$('#lexReset').onclick = () => { lex.k = 0; lexRender(); };
+$('#lexBad').onclick = () => { $('#lexIn').value = 'x = 1 @ 2;'; lexLoad(); };
+lexLoad();
+
+// ---------------- 5. Parser paso a paso ----------------
+function simular(src){
+  const ev = []; let toks;
+  try { toks = tokenizar(src); }
+  catch (e){ return {toks: [], ev: [{t: 'error', msg: 'Error LÉXICO en línea ' + e.linea + ', col ' + e.col + ': ' + e.msg + '. El lexer falla antes de que el parser empiece.', pos: 0}]}; }
+  let i = 0; const la = () => toks[i];
+  const enter = (n, why) => ev.push({t: 'enter', n, why, pos: i});
+  const exit = n => ev.push({t: 'exit', n, why: 'Termino ' + n + '() y regreso a la función que me llamó: sale de la pila.', pos: i});
+  const note = why => ev.push({t: 'note', why, pos: i});
+  const err = (msg, t) => { const e = new Error(msg); e.sx = {msg, linea: t.linea, col: t.col}; return e; };
+  function consumir(tipo, why){
+    const t = la();
+    if (t.tipo !== tipo) throw err("se esperaba '" + tipo + "' pero llegó '" + t.valor + "'", t);
+    i++; ev.push({t: 'consume', tok: t, why: why || ("Llega '" + t.valor + "', justo lo que esperaba. Lo consumo y avanzo al siguiente token."), pos: i});
+    return t;
+  }
+  const DESC = {int: 'una declaración (Stmt → int ID Init ;)', ID: 'una asignación (Stmt → ID = Expr ;)', if: 'un if (Stmt → if ( Cond ) Bloque Else)', while: 'un while (Stmt → while ( Cond ) Bloque)', print: 'un print (Stmt → print ( Expr ) ;)', '{': 'un bloque (Stmt → Bloque)'};
+  function programa(){
+    enter('Programa', 'Empiezo por el símbolo inicial: Programa. Un programa es una lista de sentencias, una tras otra, hasta llegar a $.');
+    while (la().tipo !== '$'){
+      if (la().tipo === '}') throw err("'}' sin su '{' correspondiente", la());
+      stmt();
+    }
+    note('Llegué a $ (fin del archivo) y no sobró ningún token.');
+    exit('Programa');
+  }
+  function stmt(){
+    const t = la();
+    if (!DESC[t.tipo]){ enter('Stmt', "Espero una sentencia, pero veo '" + t.valor + "'. Ninguna regla de Stmt empieza con eso: no está en FIRST(Stmt)."); throw err("no puede comenzar una sentencia con '" + t.valor + "'", t); }
+    enter('Stmt', "Miro el lookahead: '" + t.valor + "'. Con solo ese token ya sé que es " + DESC[t.tipo] + '. Eso es LL(1): un token basta para decidir.');
+    switch (t.tipo){
+      case 'int':
+        consumir('int'); consumir('ID', "'" + la().valor + "' es el nombre de la variable (ID).");
+        if (la().tipo === '='){ consumir('=', "Hay '=': uso Init → = Expr (la variable trae valor inicial)."); expr(); }
+        else note("No hay '=': uso Init → ε (declaración sin valor).");
+        consumir(';', "El ';' cierra la sentencia."); break;
+      case 'ID':
+        consumir('ID', "'" + t.valor + "' es la variable a la que se asigna."); consumir('=', "El '=' de la asignación."); expr(); consumir(';', "El ';' cierra la sentencia."); break;
+      case 'if':
+        consumir('if'); consumir('(', "La regla exige '(' después de if."); cond(); consumir(')', "Cierra la condición."); bloque();
+        if (la().tipo === 'else'){ consumir('else', "Veo 'else': uso Else → else Bloque."); bloque(); }
+        else note("El lookahead no es 'else': uso Else → ε (if sin else).");
+        break;
+      case 'while':
+        consumir('while'); consumir('(', "La regla exige '('."); cond(); consumir(')'); bloque(); break;
+      case 'print':
+        consumir('print'); consumir('('); expr(); consumir(')'); consumir(';'); break;
+      case '{': bloque(); break;
+    }
+    exit('Stmt');
+  }
+  function bloque(){
+    enter('Bloque', 'Un bloque es { sentencias }. Las llaves son obligatorias: por eso no existe el «else colgante».');
+    consumir('{', "Abre la llave del bloque.");
+    while (la().tipo !== '}' && la().tipo !== '$') stmt();
+    consumir('}', "Cierra la llave del bloque.");
+    exit('Bloque');
+  }
+  function cond(){
+    enter('Cond', 'Una condición es una expresión, opcionalmente comparada con otra.');
+    expr();
+    if (la().tipo === 'RELOP'){ consumir('RELOP', "Comparación '" + la().valor + "' (RELOP). Ahora viene la segunda expresión."); expr(); }
+    exit('Cond');
+  }
+  function expr(){
+    enter('Expr', 'Expr = términos unidos por + o -. Primero leo un término.');
+    term();
+    while (la().tipo === '+' || la().tipo === '-'){
+      const op = la().tipo;
+      consumir(op, "Veo '" + op + "' fuera de cualquier término: la " + (op === '+' ? 'suma' : 'resta') + ' se cuelga aquí en Expr, MÁS ARRIBA que las multiplicaciones, así que se calcula al final. Sigo el ciclo: otro término.');
+      term();
+    }
+    exit('Expr');
+  }
+  function term(){
+    enter('Term', 'Term = factores unidos por * o /. Leo un factor.');
+    factor();
+    while (la().tipo === '*' || la().tipo === '/'){
+      const op = la().tipo;
+      consumir(op, "Veo '" + op + "': la " + (op === '*' ? 'multiplicación' : 'división') + ' se queda aquí en Term, MÁS ABAJO en el árbol que la suma, así que se calcula primero.');
+      factor();
+    }
+    exit('Term');
+  }
+  function factor(){
+    const t = la();
+    if (t.tipo === 'NUM'){ enter('Factor', 'Factor: el lookahead es un número.'); consumir('NUM', "'" + t.valor + "' es un número: una hoja del árbol."); }
+    else if (t.tipo === 'ID'){ enter('Factor', 'Factor: el lookahead es una variable.'); consumir('ID', "'" + t.valor + "' es una variable: una hoja del árbol."); }
+    else if (t.tipo === '('){ enter('Factor', "Factor: veo '('. Adentro va una expresión COMPLETA, y aquí la gramática se llama a sí misma (recursión). Por eso los paréntesis pueden anidarse sin límite."); consumir('('); expr(); consumir(')', "Cierra el paréntesis."); }
+    else if (t.tipo === '-'){ enter('Factor', "Factor: veo '-' al inicio, así que es una negación unaria (Factor → - Factor)."); consumir('-'); factor(); }
+    else { enter('Factor', 'Necesito un factor: un número, una variable, ( o -.'); throw err("se esperaba número, variable, '(' o '-' pero llegó '" + t.valor + "'", t); }
+    exit('Factor');
+  }
+  try { programa(); ev.push({t: 'done', pos: i}); }
+  catch (e){ if (!e.sx) throw e; ev.push({t: 'error', msg: 'Error sintáctico en línea ' + e.sx.linea + ', col ' + e.sx.col + ': ' + e.sx.msg + '. Ninguna regla permite este token aquí, así que el parser se detiene (con --recuperar saltaría hasta el siguiente ; o }).', pos: i}); }
+  return {toks, ev};
+}
+const P = {toks: [], ev: [], k: 0, timer: null};
+function pLoad(){ const r = simular($('#pIn').value); P.toks = r.toks; P.ev = r.ev; P.k = 0; pStop(); pRender(); if (window.tReady) tLoad(); }
+function pRender(){
+  const root = {label: '·', kind: 'nt', children: []}; const stack = [root]; let hl = null, pos = 0;
+  for (let j = 0; j < P.k; j++){
+    const e = P.ev[j]; pos = e.pos;
+    if (e.t === 'enter'){ const n = {label: e.n, kind: 'nt', children: []}; stack[stack.length - 1].children.push(n); stack.push(n); hl = n; }
+    else if (e.t === 'exit'){ hl = stack.pop(); }
+    else if (e.t === 'consume'){ const n = {label: e.tok.valor, kind: 'leaf', children: []}; stack[stack.length - 1].children.push(n); hl = n; }
+    else if (e.t === 'error'){ const n = {label: '✗ ' + (P.toks[e.pos] ? P.toks[e.pos].valor : '?'), kind: 'bad', children: []}; stack[stack.length - 1].children.push(n); hl = n; }
+  }
+  const narr = $('#pNarr'); narr.className = 'narr';
+  if (P.k === 0) narr.textContent = 'Presiona «Siguiente paso». El parser empieza en Programa y va bajando por las reglas.';
+  else {
+    const e = P.ev[P.k - 1];
+    if (e.t === 'done'){ narr.className = 'narr ok'; narr.textContent = '✅ ¡Programa válido! Se consumieron todos los tokens y la pila de llamadas quedó vacía. El árbol de la derecha es la prueba de que el programa sigue la gramática.'; }
+    else if (e.t === 'error'){ narr.className = 'narr err'; narr.textContent = '❌ ' + e.msg; }
+    else narr.textContent = (e.t === 'enter' ? '➡️ Entro a ' + e.n + '(). ' : e.t === 'consume' ? '✔️ ' : e.t === 'exit' ? '⬅️ ' : '💡 ') + e.why;
+  }
+  const tk = $('#pToks'); tk.innerHTML = '';
+  if (!P.toks.length) tk.appendChild(el('span', 'small', '(sin tokens: hubo un error léxico)'));
+  P.toks.forEach((t, j) => { const s = el('span', 'tok ' + t.clase + (j < pos ? ' done' : '') + (j === pos && P.k > 0 ? ' cur' : '')); s.textContent = t.valor; s.appendChild(el('small', null, t.tipo)); tk.appendChild(s); });
+  const sk = $('#pStack'); sk.innerHTML = '';
+  const frames = stack.slice(1).reverse();
+  if (!frames.length) sk.appendChild(el('span', 'small', P.k === 0 ? '(vacía: todavía no empieza)' : '(vacía)'));
+  frames.forEach((f, j) => sk.appendChild(el('div', 'frame' + (j === 0 ? ' top' : ''), f.label.toLowerCase() + '()')));
+  showTree($('#pTree'), root.children[0], hl);
+  $('#pCount').textContent = 'paso ' + P.k + ' de ' + P.ev.length;
+}
+function pStop(){ if (P.timer){ clearInterval(P.timer); P.timer = null; $('#pPlay').textContent = '▶ Auto'; } }
+$('#pLoad').onclick = pLoad;
+$('#pNext').onclick = () => { if (P.k < P.ev.length) P.k++; pRender(); };
+$('#pPrev').onclick = () => { if (P.k > 0) P.k--; pRender(); };
+$('#pFirst').onclick = () => { P.k = 0; pStop(); pRender(); };
+$('#pLast').onclick = () => { P.k = P.ev.length; pStop(); pRender(); };
+$('#pPlay').onclick = () => {
+  if (P.timer){ pStop(); return; }
+  if (P.k >= P.ev.length) P.k = 0;
+  $('#pPlay').textContent = '⏸ Pausa';
+  P.timer = setInterval(() => { if (P.k >= P.ev.length){ pStop(); return; } P.k++; pRender(); }, 1100);
+};
+document.querySelectorAll('[data-prog]').forEach(b => b.onclick = () => { $('#pIn').value = b.dataset.prog; pLoad(); });
+pLoad();
+
+// ---------------- 5b. Traza LL(1) con pila explícita ----------------
+const G = {
+  Programa: [['Stmts']],
+  Stmts: [['Stmt','Stmts'], []],
+  Stmt: [['int','ID','Init',';'], ['ID','=','Expr',';'], ['if','(','Cond',')','Bloque','Else'], ['while','(','Cond',')','Bloque'], ['print','(','Expr',')',';'], ['Bloque']],
+  Init: [['=','Expr'], []],
+  Else: [['else','Bloque'], []],
+  Bloque: [['{','Stmts','}']],
+  Cond: [['Expr','CondR']],
+  CondR: [['RELOP','Expr'], []],
+  Expr: [['Term','ExprR']],
+  ExprR: [['+','Term','ExprR'], ['-','Term','ExprR'], []],
+  Term: [['Factor','TermR']],
+  TermR: [['*','Factor','TermR'], ['/','Factor','TermR'], []],
+  Factor: [['NUM'], ['ID'], ['(','Expr',')'], ['-','Factor']]
+};
+const isNT = s => Object.prototype.hasOwnProperty.call(G, s);
+const FI = {}, FO = {};
+for (const A in G){ FI[A] = new Set(); FO[A] = new Set(); }
+FO.Programa.add('$');
+function firstSeq(seq){
+  const r = new Set();
+  for (const s of seq){
+    if (!isNT(s)){ r.add(s); return r; }
+    FI[s].forEach(x => { if (x !== 'ε') r.add(x); });
+    if (!FI[s].has('ε')) return r;
+  }
+  r.add('ε'); return r;
+}
+let cambio = true;
+while (cambio){ cambio = false; for (const A in G) for (const p of G[A]) for (const x of firstSeq(p)) if (!FI[A].has(x)){ FI[A].add(x); cambio = true; } }
+cambio = true;
+while (cambio){ cambio = false; for (const A in G) for (const p of G[A]) p.forEach((s, i) => {
+  if (!isNT(s)) return;
+  const r = firstSeq(p.slice(i + 1)); const add = [...r].filter(x => x !== 'ε'); if (r.has('ε')) add.push(...FO[A]);
+  for (const x of add) if (!FO[s].has(x)){ FO[s].add(x); cambio = true; }
+}); }
+const M = {};
+for (const A in G){ M[A] = {}; G[A].forEach((p, k) => { for (const a of firstSeq(p)){ if (a === 'ε') FO[A].forEach(b => M[A][b] = k); else M[A][a] = k; } }); }
+const prodStr = (A, k) => A + ' → ' + (G[A][k].length ? G[A][k].join(' ') : 'ε');
+const TERMS = ['ID','NUM','int','if','else','while','print','RELOP','+','-','*','/','=','(',')','{','}',';','$'];
+
+function trazaLL(src){
+  let toks;
+  try { toks = tokenizar(src); }
+  catch (e){ return [{pila: '—', entrada: src, accion: 'Error LÉXICO en línea ' + e.linea + ', col ' + e.col + ': ' + e.msg + '. El parser ni siquiera empieza.', kind: 'err'}]; }
+  const st = ['$', 'Programa']; let i = 0; const rows = [];
+  for (let guard = 0; guard < 3000; guard++){
+    const top = st[st.length - 1], a = toks[i];
+    const row = {pila: [...st].reverse().join(' '), entrada: toks.slice(i).map(t => t.valor).join(' '), kind: '', cell: null};
+    if (top === '$' && a.tipo === '$'){ row.accion = 'La pila y la entrada llegaron juntas a $: ACEPTA ✅'; row.kind = 'ok'; rows.push(row); break; }
+    if (!isNT(top)){
+      if (top === a.tipo){ row.accion = "Emparejar '" + a.valor + "': el terminal del tope coincide con la entrada; se sacan los dos."; row.kind = 'match'; st.pop(); i++; }
+      else { row.accion = "ERROR: el tope es '" + top + "' pero llegó '" + a.valor + "' (línea " + a.linea + ', col ' + a.col + ').'; row.kind = 'err'; rows.push(row); break; }
+    } else {
+      const k = M[top][a.tipo];
+      if (k === undefined){ row.accion = 'ERROR: la celda M[' + top + ', ' + a.tipo + "] está vacía: ninguna regla de " + top + " empieza con '" + a.valor + "' (línea " + a.linea + ', col ' + a.col + ').'; row.kind = 'err'; row.cell = [top, a.tipo]; rows.push(row); break; }
+      const p = G[top][k]; st.pop(); for (let j = p.length - 1; j >= 0; j--) st.push(p[j]);
+      row.accion = 'Derivar: M[' + top + ', ' + a.tipo + '] dice ' + prodStr(top, k) + (p.length ? '' : '  (se saca ' + top + ' sin poner nada)');
+      row.kind = p.length ? 'derive' : 'eps'; row.cell = [top, a.tipo];
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+const TR = {rows: [], k: 0};
+const KIND_TXT = {derive: 'El tope es un NO TERMINAL: miro el lookahead, busco la celda en la tabla M y reemplazo el tope por el lado derecho de la regla (al revés, para que el primer símbolo quede arriba).', eps: 'El tope es un no terminal y la tabla manda usar su regla ε: se saca de la pila sin poner nada. El token no se consume. Así se cierran las partes opcionales y los ciclos (ExprR, TermR, Stmts…).', match: 'El tope es un TERMINAL igual al token actual: se emparejan, se sacan los dos y se avanza en la entrada.', ok: '¡Aceptado! Cada paso fue Derivar o Emparejar. En ningún momento hubo que adivinar: siempre había UNA sola celda posible. Eso es LL(1).', err: 'Error: no hay regla que aplicar. Es el mismo error que reporta el parser real, en la misma línea y columna.'};
+function tLoad(){ TR.rows = trazaLL($('#pIn').value); TR.k = 0; tRender(); }
+function tRender(){
+  const tb = $('#tTable tbody'); tb.innerHTML = '';
+  TR.rows.slice(0, TR.k).forEach((r, j) => {
+    const tr = el('tr');
+    if (j === TR.k - 1) tr.style.background = 'var(--acc-soft)';
+    tr.appendChild(el('td', 'small', String(j + 1)));
+    tr.appendChild(el('td', 'mono', r.pila));
+    tr.appendChild(el('td', 'mono', r.entrada));
+    const ac = el('td', null, r.accion);
+    if (r.kind === 'err') ac.style.color = 'var(--bad)';
+    if (r.kind === 'ok') ac.style.color = 'var(--ok)';
+    if (r.kind === 'match') ac.style.color = 'var(--acc)';
+    tr.appendChild(ac); tb.appendChild(tr);
+  });
+  const box = tb.closest('div'); box.scrollTop = box.scrollHeight;
+  const n = $('#tNarr'); const last = TR.rows[TR.k - 1];
+  n.className = 'narr' + (last && last.kind === 'err' ? ' err' : last && last.kind === 'ok' ? ' ok' : '');
+  n.textContent = last ? KIND_TXT[last.kind] : 'Presiona «Siguiente fila». La pila empieza con Programa encima de $, y la entrada es la lista de tokens.';
+  $('#tCount').textContent = 'fila ' + TR.k + ' de ' + TR.rows.length;
+  renderM(last && last.cell);
+}
+function renderM(cell){
+  const t = $('#mTable'); t.innerHTML = '';
+  const h = el('tr'); h.appendChild(el('th', null, 'M')); TERMS.forEach(a => h.appendChild(el('th', null, a))); t.appendChild(h);
+  Object.keys(G).forEach(A => {
+    const tr = el('tr'); tr.appendChild(el('th', null, A));
+    TERMS.forEach(a => {
+      const k = M[A][a]; const td = el('td', null, k === undefined ? '' : (G[A][k].length ? G[A][k].join(' ') : 'ε'));
+      if (cell && cell[0] === A && cell[1] === a){ td.style.background = 'var(--acc)'; td.style.color = '#fff'; }
+      else if (k !== undefined) td.style.background = 'var(--soft)';
+      tr.appendChild(td);
+    });
+    t.appendChild(tr);
+  });
+}
+$('#tNext').onclick = () => { if (TR.k < TR.rows.length) TR.k++; tRender(); };
+$('#tPrev').onclick = () => { if (TR.k > 0) TR.k--; tRender(); };
+$('#tFirst').onclick = () => { TR.k = 0; tRender(); };
+$('#tLast').onclick = () => { TR.k = TR.rows.length; tRender(); };
+window.tReady = true; tLoad();
+
+// ---------------- 6. FIRST ----------------
+const FIRSTS = [
+ ['int', 'Stmt → int ID Init ;  (declaración)'], ['x  (ID)', 'Stmt → ID = Expr ;  (asignación)'], ['if', 'Stmt → if ( Cond ) Bloque Else'],
+ ['while', 'Stmt → while ( Cond ) Bloque'], ['print', 'Stmt → print ( Expr ) ;'], ['{', 'Stmt → Bloque'],
+ ['5  (NUM)', null], ['else', null], [';', null]
+];
+FIRSTS.forEach(([t, r]) => { const b = el('button', 'chip mono', t); b.onclick = () => {
+  const o = $('#firstOut');
+  if (r){ o.className = 'res ok'; o.innerHTML = 'Con <b>' + t + '</b> el parser elige sin dudar: <code>' + r + '</code>'; }
+  else { o.className = 'res bad'; o.innerHTML = '<b>' + t + '</b> no está en FIRST(Stmt): ninguna sentencia puede empezar así. Error: «no puede comenzar una sentencia con \'' + t.split(' ')[0] + '\'». Así se detectan, por ejemplo, <code>5 = x;</code> (asignar a un literal) o el «else huérfano».'; }
+}; $('#firstBtns').appendChild(b); });
+
+// ---------------- 7. Concordancia ----------------
+const DETS = [['el','m','sg'],['la','f','sg'],['los','m','pl'],['las','f','pl']];
+const NS = [['gato','m','sg'],['gatos','m','pl'],['niña','f','sg'],['niñas','f','pl'],['perro','m','sg'],['perras','f','pl']];
+const ADJS = [['(sin adjetivo)'],['negro','m','sg'],['negra','f','sg'],['negros','m','pl'],['negras','f','pl'],['feliz','mf','sg'],['felices','mf','pl']];
+const VS = [['duerme','sg'],['duermen','pl'],['corre','sg'],['corren','pl']];
+function fill(sel, arr, def){ arr.forEach((a, i) => { const o = el('option', null, a[0]); o.value = i; sel.appendChild(o); }); sel.value = def; sel.onchange = conc; }
+fill($('#cDet'), DETS, 2); fill($('#cN'), NS, 1); fill($('#cAdj'), ADJS, 3); fill($('#cV'), VS, 0);
+const gname = g => ({m: 'masculino', f: 'femenino', mf: 'ambos'})[g], nname = n => ({sg: 'singular', pl: 'plural'})[n];
+function conc(){
+  const d = DETS[$('#cDet').value], n = NS[$('#cN').value], a = ADJS[$('#cAdj').value], v = VS[$('#cV').value];
+  const checks = [];
+  const gOk = d[1] === n[1], nOk = d[2] === n[2];
+  checks.push([gOk, 'Det–N, género: «' + d[0] + '» es ' + gname(d[1]) + ' y «' + n[0] + '» es ' + gname(n[1])]);
+  checks.push([nOk, 'Det–N, número: «' + d[0] + '» es ' + nname(d[2]) + ' y «' + n[0] + '» es ' + nname(n[2])]);
+  if (a.length > 1){
+    checks.push([a[1] === 'mf' || a[1] === n[1], 'N–Adj, género: «' + a[0] + '» es ' + gname(a[1]) + (a[1] === 'mf' ? ' (sirve para los dos)' : '')]);
+    checks.push([a[2] === n[2], 'N–Adj, número: «' + a[0] + '» es ' + nname(a[2])]);
+  }
+  checks.push([v[1] === n[2], 'Sujeto–verbo, número: el sujeto es ' + nname(n[2]) + ' y «' + v[0] + '» es ' + nname(v[1])]);
+  const ok = checks.every(c => c[0]);
+  const frase = [d[0], n[0], a.length > 1 ? a[0] : null, v[0]].filter(Boolean).join(' ');
+  const out = $('#cOut'); out.innerHTML = '';
+  const r = el('div', 'res ' + (ok ? 'ok' : 'bad')); r.innerHTML = '<b>«' + frase + '»</b> → ' + (ok ? 'ACEPTA ✅' : 'RECHAZA ❌');
+  checks.forEach(c => r.appendChild(el('div', 'check', (c[0] ? '✔ ' : '✘ ') + c[1])));
+  out.appendChild(r);
+  const snKids = [T('Det[' + d[1] + ',' + d[2] + ']', T(d[0])), T('N[' + n[1] + ',' + n[2] + ']', T(n[0]))];
+  if (a.length > 1) snKids.push(T('Adj[' + a[1] + ',' + a[2] + ']', T(a[0])));
+  showTree($('#cTree'), ok ? T('O', T('SN', ...snKids), T('SV', T('V[pres,' + v[1] + ']', T(v[0])))) : null);
+  if (!ok) $('#cTree').appendChild(el('li', 'small', 'No hay árbol: la oración no pertenece al lenguaje.'));
+  const g = n[1], nu = n[2];
+  $('#cPure').innerHTML = ok
+    ? 'S → S_' + nu + '<br>S_' + nu + ' → SN_' + nu + ' SV_' + nu + '<br>SN_' + g + '_' + nu + ' → Det_' + g + '_' + nu + ' N_' + g + '_' + nu + (a.length > 1 ? ' Adj_' + g + '_' + nu : '') + '<br>SV_' + nu + ' → Vi_' + nu + '<br><br><span style="font-family:system-ui">El género y el número quedaron metidos DENTRO del nombre del no terminal. Ya no hay que «revisar» nada: si no existe una regla <code>SN_' + g + '_' + nu + ' → Det_' + (g === 'm' ? 'f' : 'm') + '_' + nu + ' …</code>, la combinación mala simplemente no se puede generar.</span>'
+    : '<span style="font-family:system-ui">En la CFG pura no existe ninguna producción que junte estas piezas, por ejemplo <code>Det_' + d[1] + '_' + d[2] + '</code> con <code>N_' + n[1] + '_' + n[2] + '</code>' + (v[1] !== n[2] ? ', o un SN_' + n[2] + ' con un verbo ' + v[1] : '') + '. Por eso NLTK también la rechaza.</span>';
+}
+conc();
+
+// ---------------- 8. Ambigüedad ----------------
+const SNgato = T('SN', T('Det', T('el')), T('N', T('gato')));
+const SPtel = T('SP', T('P', T('con')), T('SN', T('Det', T('el')), T('N', T('telescopio'))));
+const SNhombre = T('SN', T('Det', T('el')), T('N', T('hombre')));
+showTree($('#amb1'), T('O', SNhombre, T('SV', T('V', T('ve')), T('A', T('a')), SNgato, SPtel)));
+showTree($('#amb2'), T('O', T('SN', T('Det', T('el')), T('N', T('hombre'))), T('SV', T('V', T('ve')), T('A', T('a')), T('SN', T('Det', T('el')), T('N', T('gato')), SPtel))));
+
+// ---------------- 9. Catálogo ----------------
+const CAT = [
+ ['A', 'el gato la persigue', 'Pronombre clítico', 'Rechaza porque no existe la regla SV → Cl V. Agregarla sigue siendo CFG: es una falla del FRAGMENTO, no de las CFG.'],
+ ['A', 'come el pan', 'Sujeto tácito', 'La regla O → SN SV exige sujeto. Bastaría agregar O → SV: no prueba ningún límite.'],
+ ['A', 'Juan y María leen un libro', 'Coordinación', 'Rechaza porque «y» no está en el léxico. Un rechazo por vocabulario NO prueba nada sobre las CFG.'],
+ ['A', 'la niña que el gato persigue corre', 'Relativa de objeto', 'Falta una regla con «hueco» en el objeto. Se puede hacer dentro de Tipo 2.'],
+ ['A', '¿dónde está el gato?', 'Interrogativa', '«dónde» y «está» no están en el léxico. Es una falla de cobertura.'],
+ ['B', 'el hombre ve al gato con el telescopio', 'Ambigüedad', 'ACEPTA con 2 árboles. Es CFG, pero una gramática ambigua no puede ser LL(1). Es un límite de la TÉCNICA, no de la clase.'],
+ ['E', 'el gato que corre persiguen al ratón', 'Concordancia a distancia', 'RECHAZA correctamente: el rasgo de número viaja por la estructura aunque haya una relativa en medio. La gramática lo resuelve bien.'],
+ ['E', 'los niños de la escuela duerme', 'Concordancia con «atractor»', 'RECHAZA correctamente: el núcleo del sujeto es «niños» (plural), aunque «escuela» (singular) esté más cerca del verbo.'],
+ ['C', 'Juan y María son rubio y morena respectivamente', 'Dependencias cruzadas', 'Rechaza solo por léxico (6 palabras faltantes), así que el rechazo no demuestra nada. El límite de clase es un ARGUMENTO TEÓRICO: {ww} no es libre de contexto, siempre que k sea ilimitado.'],
+ ['D', 'el libro come la casa', 'Anomalía semántica', 'ACEPTA: sintácticamente está bien, solo que no tiene sentido. Las restricciones de significado no le tocan a una CFG, y spaCy tampoco la rechaza.']
+];
+const CLS = {A: 'Falla del fragmento', B: 'Límite de la técnica', C: 'Límite de la clase', D: 'Fuera de la sintaxis', E: 'Bien manejada'};
+CAT.forEach(([c, o, f, x]) => {
+  const d = el('div', 'card'); d.innerHTML = '<span class="tag t' + c + '">' + c + '</span><b>' + CLS[c] + '</b><div class="mono" style="margin-top:6px">«' + o + '»</div><div class="small">' + f + ' · toca para ver qué demuestra</div><div class="hid">' + x + '</div>';
+  d.onclick = () => d.classList.toggle('open'); $('#cards').appendChild(d);
+});
+
+// ---------------- 12. Quiz ----------------
+const QZ = [
+ ['¿Qué hace el lexer?', ['Construye el árbol de análisis', 'Agrupa los caracteres en tokens', 'Verifica que la gramática sea LL(1)'], 1, 'Agrupa los caracteres en tokens con tipo, valor, línea y columna. El árbol lo construye el parser.'],
+ ['¿En qué nivel de Chomsky está el lexer?', ['Tipo 3 (regular)', 'Tipo 2 (libre de contexto)', 'Tipo 1'], 0, 'Usa expresiones regulares, que equivalen a autómatas finitos: Tipo 3.'],
+ ['¿Por qué Mini-C NO es un lenguaje regular?', ['Porque tiene palabras clave', 'Porque los paréntesis anidados exigen contar sin límite (una pila)', 'Porque tiene comentarios'], 1, 'Es como aⁿbⁿ: un autómata finito no puede contar sin límite. Hace falta un autómata de pila (Tipo 2).'],
+ ['¿Qué significa LL(1)?', ['Que el parser lee la entrada una sola vez', 'Que con 1 token de anticipación siempre se sabe qué regla aplicar', 'Que la gramática tiene 1 regla por no terminal'], 1, 'Izquierda a derecha, derivación por la izquierda, 1 token de lookahead. verificar_ll1() da 0 conflictos.'],
+ ['En el árbol de «5 + 3 * 2», ¿qué queda más abajo?', ['5 + 3', '3 * 2', 'Los dos al mismo nivel'], 1, 'La multiplicación vive en Term, un piso abajo de Expr. Lo que está más abajo se calcula primero: eso es la precedencia.'],
+ ['¿Por qué se eliminó la recursión izquierda (Expr → Expr + Term)?', ['Para que la gramática sea más corta', 'Porque expr() se llamaría a sí misma para siempre sin consumir tokens', 'Porque NLTK no la acepta'], 1, 'En un parser descendente recursivo sería un bucle infinito. Por eso se usa Expr → Term ExprR.'],
+ ['¿Para qué sirven las llaves obligatorias en if/while?', ['Para eliminar el «else colgante»', 'Para que el lexer funcione', 'Para permitir comentarios'], 0, 'Con llaves siempre queda claro a qué if pertenece cada else.'],
+ ['¿Qué hace el modo pánico (--recuperar)?', ['Borra el archivo con errores', 'Anota el error, salta hasta el siguiente ; o } y sigue analizando', 'Corrige el error automáticamente'], 1, 'Así reporta varios errores en una corrida en vez de detenerse en el primero.'],
+ ['¿La concordancia de género y número saca al español de Tipo 2?', ['Sí, necesita una gramática sensible al contexto', 'No: con rasgos finitos se expande a una CFG pura (338 producciones)', 'Depende del verbo'], 1, 'Cuesta tamaño (10 reglas → 338 producciones), no poder expresivo. NLTK acepta exactamente lo mismo.'],
+ ['¿Por qué el parser del español usa retroceso (yield) y no es LL(1)?', ['Porque Python no permite LL(1) con texto', 'Porque la gramática es ambigua: un token no basta para decidir', 'Porque el español tiene acentos'], 1, 'Ejemplo: «con el telescopio» puede ir con el verbo o con el gato. Una gramática ambigua nunca es LL(1).'],
+ ['El parser rechaza «come el pan». ¿Qué demuestra eso?', ['Que las CFG no sirven para el español', 'Solo que faltó la regla O → SV (falla del fragmento, clase A)', 'Que la oración es semánticamente anómala'], 1, 'Agregar la regla mantiene Tipo 2. Un rechazo por una regla no escrita no prueba un límite de las CFG.'],
+ ['¿Qué fenómeno sí podría exceder a las CFG?', ['La concordancia de género', 'Las dependencias cruzadas no acotadas («respectivamente» con k ilimitado)', 'Los adjetivos'], 1, 'Se parecen a {ww}, que no es libre de contexto. Pero es un argumento TEÓRICO: el parser no lo demuestra.'],
+ ['¿Cuál es la diferencia de fondo entre su parser y spaCy?', ['spaCy es más lento', 'El parser decide pertenencia (acepta/rechaza); spaCy siempre da la estructura más probable y nunca rechaza', 'No hay diferencia'], 1, 'Responden preguntas distintas. spaCy analiza «los niños de la escuela duerme» como si fuera correcta.'],
+ ['Les preguntan: «¿qué acciones shift/reduce hace su parser?». ¿Qué responden?', ['Shift al leer un token y reduce al terminar una regla', 'Ninguna: es descendente LL(1); sus acciones son derivar y emparejar. Shift/reduce es de los parsers ascendentes LR', 'Solo reduce, porque no tiene pila'], 1, 'LL arma el árbol de la raíz a las hojas con la tabla M[no terminal, token]; LR (yacc, bison) lo arma de las hojas a la raíz con shift/reduce.'],
+ ['¿2, 5, 14 árboles para más frases preposicionales son…?', ['Números de Fibonacci', 'Números de Catalan', 'Potencias de 2'], 1, 'Los números de Catalan cuentan las formas de agrupar (como poner paréntesis).']
+];
+function quiz(){
+  const box = $('#quiz'); box.innerHTML = ''; let right = 0, done = 0;
+  const upd = () => $('#score').textContent = done ? 'Llevas ' + right + ' de ' + done + ' correctas.' : '';
+  QZ.forEach(([q, opts, ans, exp], qi) => {
+    const d = el('div', 'q'); d.appendChild(el('b', null, (qi + 1) + '. ' + q));
+    opts.forEach((o, oi) => { const b = el('button', 'opt', o); b.onclick = () => {
+      if (d.classList.contains('answered')) return;
+      d.classList.add('answered'); done++; if (oi === ans) right++;
+      b.classList.add(oi === ans ? 'right' : 'wrong'); d.querySelectorAll('.opt')[ans].classList.add('right'); upd();
+    }; d.appendChild(b); });
+    d.appendChild(el('div', 'exp', exp)); box.appendChild(d);
+  });
+  upd();
+}
+$('#quizReset').onclick = quiz; quiz();
+</script>
+</body>
+</html>

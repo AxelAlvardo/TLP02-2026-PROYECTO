@@ -1,0 +1,6 @@
+python -m tlp.formal casos/formal/validos/11_euclides.mc
+python -m tlp.formal casos/formal/errores_defensa.mc
+python -m tlp.formal casos/formal/errores_defensa.mc --recuperar
+python -m tlp.apoyo.contraste_nlp "los niños de la escuela duerme"
+spacy
+python -m tlp.espanol.gramatica_es el hombre ve al gato con el telescopio
