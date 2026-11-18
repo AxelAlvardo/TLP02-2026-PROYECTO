@@ -1,72 +1,43 @@
-# TLP02-2026 — Fase 1: Parser formal (Mini-C) y extensión al español
+# TLP02-2026 — Fase 2: gramática del español, comparación con NLP y experimento con LLM
 
-Proyecto «Gramáticas formales y lenguaje natural: experimentando los límites de la jerarquía de Chomsky».
-Este repositorio contiene **solo la Fase 1**:
+Esta guía reúne los comandos para ejecutar cada parte de la Fase 2. La Fase 1 está en [`README.md`](README.md).
 
-1. Parser descendente recursivo LL(1) para *Mini-C* (subconjunto de C), con árbol de análisis y errores con línea/columna.
-2. Intento de extender la CFG a un fragmento controlado del español (concordancia, subordinación, modificadores) y catálogo de puntos de falla.
-3. Contraste con NLTK (obligatorio, sin descargas) y con **spaCy** (comparación contra un modelo estadístico).
-4. Informe técnico: [`docs/INFORME_TECNICO_FASE1.md`](docs/INFORME_TECNICO_FASE1.md) (Anexo A: [`docs/01_gramatica_minic.md`](docs/01_gramatica_minic.md)).
-
-> **Fase 2:** los comandos para ejecutar cada parte de la Fase 2 están en [`README_FASE2.md`](README_FASE2.md).
-
-## Estructura
-```
-.
-├── README.md · requirements.txt · requirements-spacy.txt · run_fase1.py
-├── tlp/
-│   ├── arbol.py                  # Node (árbol de análisis) + dibujo PNG
-│   ├── formal/                   # LENGUAJE FORMAL: gramatica.py · lexer.py · parser.py · __main__.py
-│   ├── espanol/                  # gramatica_es.py (léxico, reglas, CFG pura para NLTK) · catalogo_fallas.py
-│   └── apoyo/                    # contraste_nlp.py (propio vs NLTK vs spaCy) · generar_arboles.py
-├── casos/formal/{validos,invalidos}/*.mc   # 12 programas válidos y 13 inválidos · demo_errores.mc
-├── tests/                        # test_formal · test_espanol_extension · test_contraste_nlp · test_run_fase1
-├── docs/                         # INFORME_TECNICO_FASE1.md · 01_gramatica_minic.md (Anexo A)
-└── resultados/                   # fase1_fallas.md · contraste_nlp.md · arboles/*.png
-```
-
-## Requisitos
-- Python **3.10 o superior**.
-- Git.
-
-> Los comandos de esta guía se ejecutan **desde la raíz del repositorio** (donde están `run_fase1.py` y la carpeta `tlp/`).
+> Los comandos se ejecutan **desde la raíz del repositorio** (donde están `README.md` y la carpeta `tlp/`), con el entorno virtual **activado**.
 > Cada comando va en su propio bloque para que lo copies directamente; debajo de cada uno se explica para qué sirve.
+
+## Qué comando corresponde a cada parte
+
+| Parte de la Fase 2 | Comando | Resultado |
+|---|---|---|
+| 1. Gramática libre de contexto | — (no se ejecuta) | [`docs/02_gramatica_espanol.md`](docs/02_gramatica_espanol.md) |
+| 2. Parser y árboles visuales | `python -m tlp.espanol.visualizar "<oración>"` · `python -m tlp.espanol.visualizar --conjunto` | `resultados/fase2/arboles/*.png` |
+| 3. Conjunto de prueba | `python -m unittest tests.test_fase2_espanol -v` | [`casos/espanol/conjunto_prueba.csv`](casos/espanol/conjunto_prueba.csv) |
+| 4 y 5. spaCy, HuggingFace y métricas | `python -m tlp.espanol.comparacion_nlp` | `resultados/fase2/` (tablas, CSV y gráficas) |
+| 6. Experimento con LLM | `python -m tlp.espanol.llm_experimento` | `resultados/fase2/llm/*.md` |
 
 ---
 
 ## 1. Instalación
 
-### 1.1 Clonar el repositorio
+### 1.1 Cambiar a la rama de la Fase 2 (solo si no la tienes)
 ```bash
-git clone <URL-DEL-REPOSITORIO>
+git checkout fase2-1.0
 ```
-Descarga una copia del proyecto en tu computadora. Reemplaza `<URL-DEL-REPOSITORIO>` por la URL real.
+Selecciona la rama `fase2-1.0`, que contiene la Fase 2.
 
-### 1.2 Entrar a la carpeta del proyecto
-```bash
-cd <CARPETA-CLONADA>
-```
-Te sitúa en la raíz del repositorio. Todos los demás comandos se ejecutan desde aquí.
-
-### 1.3 Cambiar a la rama de la entrega (solo si no la tienes)
-```bash
-git checkout fase1-1.0
-```
-Selecciona la rama `fase1-1.0`, que contiene la versión entregada de la Fase 1.
-
-### 1.4 Crear el entorno virtual
+### 1.2 Crear el entorno virtual
 ```bash
 python -m venv .venv
 ```
-Crea la carpeta `.venv` con un Python aislado, para que las dependencias del proyecto no se mezclen con las de tu sistema. Se hace una sola vez.
+Crea la carpeta `.venv` con un Python aislado. Se hace una sola vez (si ya lo creaste para la Fase 1, sáltate este paso).
 
-### 1.5 Activar el entorno virtual
+### 1.3 Activar el entorno virtual
 
 **Windows (PowerShell):**
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
-Activa el entorno en PowerShell. Verás `(.venv)` al inicio de la línea de comandos. Si PowerShell bloquea el script, ejecuta antes el comando de la sección 1.6.
+Activa el entorno en PowerShell. Si PowerShell bloquea el script, ejecuta antes `Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned`.
 
 **Windows (CMD):**
 ```bat
@@ -80,171 +51,157 @@ source .venv/bin/activate
 ```
 Activa el entorno en Linux o macOS.
 
-> Debes activar el entorno **cada vez** que abras una terminal nueva para trabajar en el proyecto.
+> Debes activar el entorno **cada vez** que abras una terminal nueva.
 
-### 1.6 (Solo Windows) Permitir scripts en PowerShell si la activación falla
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
-```
-Permite ejecutar scripts **solo en la terminal actual** (no cambia la configuración global de tu equipo). Después repite el paso 1.5.
-
-### 1.7 Instalar las dependencias básicas
+### 1.4 Instalar las dependencias de la Fase 2
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-fase2.txt
 ```
-Instala `nltk` y `matplotlib`. Es suficiente para el parser formal, la extensión al español, el contraste con NLTK y los árboles en PNG.
+Instala spaCy (y las dependencias de la Fase 1), `transformers` y `torch` (HuggingFace) y los SDK de los tres LLM: `anthropic` (Claude), `openai` (ChatGPT) y `google-genai` (Gemini).
 
----
-
-## 2. Instalar y usar spaCy
-
-spaCy se usa para la comparación contra un modelo estadístico: procesa las mismas oraciones que intentó analizar la gramática y muestra la diferencia de capacidad.
-
-### 2.1 Instalar spaCy
-```bash
-pip install -r requirements-spacy.txt
-```
-Instala `spacy` (y también las dependencias básicas, porque este archivo incluye `requirements.txt`).
-
-### 2.2 Descargar el modelo en español
+### 1.5 Descargar el modelo de spaCy en español
 ```bash
 python -m spacy download es_core_news_sm
 ```
-Descarga el modelo pequeño de spaCy para español (`es_core_news_sm`), que es el que usa el informe. Es necesario porque spaCy por sí solo no trae ningún modelo de idioma.
+Descarga el modelo pequeño de spaCy para español, que usa la comparación de las partes 4 y 5.
 
-### 2.3 (Opcional) Descargar el modelo mediano
+---
+
+## 2. Parte 1 — Gramática libre de contexto
+
+Esta parte no tiene comando. La gramática (rasgos, reglas de producción y léxico) está documentada en [`docs/02_gramatica_espanol.md`](docs/02_gramatica_espanol.md) y programada en [`tlp/espanol/gramatica_es.py`](tlp/espanol/gramatica_es.py).
+
+---
+
+## 3. Parte 2 — Parser y árboles de análisis
+
+### 3.1 Analizar una oración y dibujar su árbol
+```bash
+python -m tlp.espanol.visualizar "el gato negro persigue al ratón"
+```
+Analiza la oración con el parser propio. Si la acepta, muestra el árbol en pantalla y lo guarda en PNG en `resultados/fase2/arboles/` (una imagen por derivación si es ambigua). Si la rechaza, indica la regla que falla. Cambia el texto por cualquier oración que quieras probar.
+
+### 3.2 Analizar todo el conjunto de prueba y dibujar sus árboles
+```bash
+python -m tlp.espanol.visualizar --conjunto
+```
+Analiza las 71 oraciones del conjunto de prueba, compara cada resultado con la salida esperada (ACEPTA / RECHAZA) y guarda los árboles de las aceptadas en `resultados/fase2/arboles/`.
+
+---
+
+## 4. Parte 3 — Conjunto de prueba
+
+El conjunto está en [`casos/espanol/conjunto_prueba.csv`](casos/espanol/conjunto_prueba.csv): 71 oraciones (56 gramaticales y 15 agramaticales) en 3 niveles de dificultad, con la salida esperada, el fenómeno que prueba cada una y su sujeto-verbo-objeto.
+
+### 4.1 Probar la gramática, el parser y el conjunto
+```bash
+python -m unittest tests.test_fase2_espanol -v
+```
+Verifica el tamaño y los niveles del conjunto, que el parser da la salida esperada y el sujeto-verbo-objeto esperado en cada oración, y que se dibuja un PNG por derivación.
+
+---
+
+## 5. Partes 4 y 5 — Comparación con spaCy y HuggingFace, y métricas
+
+### 5.1 Generar la comparación, las tablas y las gráficas
+```bash
+python -m tlp.espanol.comparacion_nlp
+```
+Procesa el conjunto con el parser propio, spaCy (crudo y con concordancia) y HuggingFace con reglas. Calcula precisión, cobertura, tasa de rechazo correcto y la clasificación de errores (falsos positivos, falsos negativos y errores de etiquetado). Escribe en `resultados/fase2/`:
+- `tablas.md`: tablas de aceptación/rechazo y de clasificación de errores.
+- `metricas_globales.csv`: las mismas métricas, con sus intervalos de confianza.
+- `errores_detalle.csv`: cada error, con su motivo.
+- `grafica_metricas.png` y `grafica_errores.png`: las gráficas.
+
+La primera vez descarga el modelo de HuggingFace (`wietsedv/xlm-roberta-base-ft-udpos28-es`, ~1,1 GB), así que necesita internet.
+
+### 5.2 (Opcional) Incluir también el modelo mediano de spaCy
 ```bash
 python -m spacy download es_core_news_md
 ```
-Descarga el modelo mediano, más grande y con vectores de palabras. Solo hace falta si quieres comparar contra él (ver 2.7).
+Descarga el modelo mediano de spaCy.
 
-### 2.4 Verificar que spaCy y el modelo quedaron bien instalados
 ```bash
-python -c "import spacy; nlp = spacy.load('es_core_news_sm'); print(spacy.__version__, nlp.meta['version'])"
+python -m tlp.espanol.comparacion_nlp --modelos sm md
 ```
-Carga el modelo e imprime las versiones. Si no muestra errores, spaCy está listo. Los resultados del informe se obtuvieron con spaCy 3.8.18 y `es_core_news_sm` 3.8.0.
+Igual que 5.1, pero compara con los modelos pequeño y mediano de spaCy.
 
-### 2.5 Contrastar UNA oración con spaCy (y con NLTK y el parser propio)
+### 5.3 Pruebas de la comparación
 ```bash
-python -m tlp.apoyo.contraste_nlp "los niños duerme"
+python -m unittest tests.test_comparacion_nlp -v
 ```
-Analiza la oración entre comillas con las tres herramientas y muestra los resultados en pantalla. No escribe ningún archivo. Cambia el texto por cualquier oración en español que quieras probar.
-
-### 2.6 Contrastar TODAS las oraciones del proyecto y generar el informe
-```bash
-python -m tlp.apoyo.contraste_nlp
-```
-Procesa el conjunto completo de oraciones (parser propio vs NLTK vs spaCy) y escribe la tabla comparativa en `resultados/contraste_nlp.md`.
-
-### 2.7 Usar otro modelo de spaCy (opcional)
-```bash
-python -m tlp.apoyo.contraste_nlp --modelo es_core_news_md
-```
-Igual que 2.6, pero con el modelo mediano. Requiere haberlo descargado en 2.3.
-
-### 2.8 Ejecutar solo las pruebas que usan spaCy
-```bash
-python -m unittest tests.test_contraste_nlp -v
-```
-Corre las pruebas del contraste. Las 2 pruebas de spaCy se ejecutan si el modelo está instalado y se omiten (`skipped`) si no lo está.
-
-> **Sin spaCy o sin el modelo todo sigue funcionando:** el contraste con NLTK se genera igual y `resultados/contraste_nlp.md` queda con la sección de spaCy marcada **«No generada»**.
+Corre las pruebas de las partes 4 y 5. Las de spaCy se omiten (`skipped`) si el modelo no está instalado y las de HuggingFace si faltan `transformers` o `torch`.
 
 ---
 
-## 3. Ejecutar el proyecto
+## 6. Parte 6 — Experimento con LLM
 
-### 3.1 Ejecutar toda la Fase 1
+### 6.1 Crear la API Key de Gemini y configurar el `.env`
+El repositorio trae la plantilla `.env.ejemplo`, sin claves. A partir de ella cada quien crea su propio `.env`, que **no se sube** al repositorio (está en `.gitignore`), así que tu API Key queda solo en tu computadora.
+
+**Paso 1. Buscar la página de la API Key.** Busca en Google **«API Key Gemini»** y entra en la página de Google para crear la API Key de Gemini.
+
+**Paso 2. Crear la API Key.** Sigue los pasos que te indica la página para crear la API Key. Al terminar, cópiala: la vas a pegar en el `.env`.
+
+**Paso 3. Copiar la plantilla como `.env`** (una sola vez)
+
+Linux / macOS:
 ```bash
-python run_fase1.py
+cp .env.ejemplo .env
 ```
-Lanza todo en orden: pruebas automáticas, parser formal sobre un ejemplo, catálogo de fallas del español, contraste NLP y árboles en PNG. Devuelve código de salida 1 si **falla algún paso**.
+Windows (PowerShell):
+```powershell
+Copy-Item .env.ejemplo .env
+```
+Windows (CMD):
+```bat
+copy .env.ejemplo .env
+```
+Crea el archivo `.env` en la raíz del proyecto, con las líneas de las claves y del modelo vacías.
 
-### 3.2 Ejecutar solo las pruebas (modo rápido)
+**Paso 4. Pegar la API Key.** Abre `.env` con cualquier editor de texto y pega tu API Key en la línea `GEMINI_API_KEY`. Deja vacías `ANTHROPIC_API_KEY` y `OPENAI_API_KEY`.
+
+**Paso 5. Escribir el modelo.** En la línea `LLM_MODELO` escribe `gemini-4-hydrogen`. El `.env` queda así:
+```
+ANTHROPIC_API_KEY=
+OPENAI_API_KEY=
+GEMINI_API_KEY=<pega-aquí-tu-api-key>
+LLM_MODELO=gemini-4-hydrogen
+```
+
+**Paso 6. Guardar el archivo y probar** con la prueba corta de la sección 6.3. Si falta algo (no existe `.env`, no hay ninguna clave, hay más de una o falta `LLM_MODELO`), el script indica qué corregir y se detiene sin llamar al LLM.
+
+> No pongas tu API Key en `.env.ejemplo`: ese archivo **sí** se sube al repositorio.
+>
+> El script también funciona con Claude o ChatGPT: en ese caso pega la clave en `ANTHROPIC_API_KEY` u `OPENAI_API_KEY` (en lugar de `GEMINI_API_KEY`) y escribe en `LLM_MODELO` el modelo de ese proveedor.
+
+### 6.2 (Opcional) Editar el prompt: zero-shot o few-shot
+El prompt está en [`casos/espanol/prompt_llm.txt`](casos/espanol/prompt_llm.txt). Las marcas `{gramatica}`, `{lexico}` y `{oracion}` se reemplazan solas por las reglas de producción, el léxico y la oración.
+- **Zero-shot:** borra toda la sección `EJEMPLOS RESUELTOS`.
+- **Few-shot:** deja, agrega o quita ejemplos (cada ejemplo es una línea `Oración: ...` seguida de su respuesta en JSON).
+
+### 6.3 Prueba corta con 5 oraciones
 ```bash
-python run_fase1.py --rapido
+python -m tlp.espanol.llm_experimento --limite 5
 ```
-Corre únicamente las pruebas automáticas a través del lanzador.
+Envía al LLM solo las 5 primeras oraciones. Sirve para comprobar la clave y el nombre del modelo sin gastar las 71 llamadas.
 
-### 3.3 Ejecutar las pruebas directamente
+### 6.4 Corrida completa (71 oraciones)
+```bash
+python -m tlp.espanol.llm_experimento
+```
+Envía al LLM las 71 oraciones del conjunto (71 llamadas a la API, que cobra el proveedor) y escribe `resultados/fase2/llm/respuestas_<proveedor>_<modelo>_<fecha-hora>.md` con el resumen, el prompt usado y la respuesta de cada oración. Si la primera llamada falla (clave o modelo mal escritos), se detiene enseguida.
+
+### 6.5 Pruebas del experimento (sin llamar a la API)
+```bash
+python -m unittest tests.test_llm_experimento -v
+```
+Corre las pruebas con un LLM simulado: no usa la clave ni gasta llamadas.
+
+---
+
+## 7. Ejecutar todas las pruebas (Fase 1 y Fase 2)
 ```bash
 python -m unittest discover -s tests -t . -v
 ```
-Corre todas las pruebas con detalle (`-v`). Es lo mismo que el paso 1 del lanzador.
-
----
-
-## 4. Parser formal (Mini-C)
-
-### 4.1 Parser sobre el programa de ejemplo incluido
-```bash
-python -m tlp.formal
-```
-Analiza un programa de ejemplo interno y muestra el árbol de análisis.
-
-### 4.2 Parser sobre un programa válido
-```bash
-python -m tlp.formal casos/formal/validos/11_euclides.mc
-```
-Analiza el algoritmo de Euclides escrito en Mini-C e imprime su árbol de análisis. Puedes usar cualquier archivo de `casos/formal/validos/`.
-
-### 4.3 Parser sobre un programa con errores
-```bash
-python -m tlp.formal casos/formal/invalidos/02_falta_punto_y_coma.mc
-```
-Muestra cómo el parser rechaza el programa e indica el error con línea y columna. Puedes usar cualquier archivo de `casos/formal/invalidos/`.
-
-### 4.4 Reportar varios errores a la vez
-```bash
-python -m tlp.formal casos/formal/demo_errores.mc --recuperar
-```
-Con `--recuperar` el parser no se detiene en el primer error, sino que sigue y lista todos. Sirve también con tus propios archivos `.mc`.
-
-> **Código de salida de `python -m tlp.formal`:** `0` si el programa es válido, `1` si tiene errores sintácticos y `2` si el archivo no existe.
-
----
-
-## 5. Extensión al español y resultados
-
-### 5.1 Generar el catálogo de puntos de falla
-```bash
-python -m tlp.espanol.catalogo_fallas
-```
-Prueba oraciones en español contra la gramática extendida, documenta dónde y por qué falla la CFG y escribe el resultado en `resultados/fase1_fallas.md`.
-
-### 5.2 Generar los árboles de análisis en PNG
-```bash
-python -m tlp.apoyo.generar_arboles
-```
-Dibuja los árboles del parser formal y del español y los guarda en `resultados/arboles/`.
-
----
-
-## Resultado esperado
-- Pruebas: `OK` con **28 pruebas** si spaCy y el modelo están instalados; **26 ejecutadas y 2 omitidas** si no lo están.
-- `Gramática LL(1): SÍ (0 conflictos)`.
-- `run_fase1.py` termina con `FASE 1: 5 paso(s) ejecutado(s) correctamente.` y código 0.
-- Ejecutar el lanzador **regenera** `resultados/` (incluidos los PNG, cuyos bytes pueden variar con la versión de matplotlib). Si no quieres esos cambios en git, descártalos antes de hacer commit.
-
-## Solución de problemas
-
-| Problema | Solución |
-|---|---|
-| `python` no se reconoce | En Windows prueba `py` en lugar de `python`. Comprueba la versión con `py --version` (debe ser 3.10+). |
-| PowerShell no deja activar el entorno | Ejecuta el comando de la sección 1.6 y vuelve a activar. |
-| `ModuleNotFoundError: No module named 'spacy'` | Activa el entorno (1.5) e instala con `pip install -r requirements-spacy.txt`. |
-| `OSError: [E050] Can't find model 'es_core_news_sm'` | Descarga el modelo: `python -m spacy download es_core_news_sm`. |
-| `ModuleNotFoundError: No module named 'tlp'` | Estás fuera de la raíz del repositorio; haz `cd` a la carpeta que contiene `run_fase1.py`. |
-
-## Agregar casos de prueba
-- Válido: crear `casos/formal/validos/NN_nombre.mc`.
-- Inválido: crear `casos/formal/invalidos/NN_nombre.mc` con primera línea `// ESPERADO: <fragmento del mensaje de error>`.
-
-No hace falta tocar el código: `tests/test_formal.py` recorre ambas carpetas.
-
-## Limitaciones declaradas
-- El español cubre un fragmento controlado (181 formas léxicas, 3.ª persona, presente y pretérito); no es un parser general del español. Parte de lo que se rechaza queda fuera por vocabulario o por reglas no escritas, lo cual **no** prueba un límite de las CFG.
-- El argumento de dependencias cruzadas («respectivamente») es teórico (requiere idealizar k ilimitado); la ejecución solo muestra un rechazo por léxico.
-- NLTK se usa como motor CFG independiente; no es un analizador estadístico. La comparación con un modelo estadístico depende de spaCy.
-- spaCy se probó únicamente con `es_core_news_sm` y 10 oraciones; la «detección de discordancia» es una heurística propia.
-- Pendiente fuera del código: presentación oral (15–20 min) con demostración en vivo, e integrantes del grupo.
+Corre todas las pruebas del proyecto con detalle.
