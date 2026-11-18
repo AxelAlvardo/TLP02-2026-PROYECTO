@@ -8,6 +8,8 @@ Este repositorio contiene **solo la Fase 1**:
 3. Contraste con NLTK (obligatorio, sin descargas) y con **spaCy** (comparación contra un modelo estadístico).
 4. Informe técnico: [`docs/INFORME_TECNICO_FASE1.md`](docs/INFORME_TECNICO_FASE1.md) (Anexo A: [`docs/01_gramatica_minic.md`](docs/01_gramatica_minic.md)).
 
+> **Fase 2:** los comandos para ejecutar cada parte de la Fase 2 están en [`README_FASE2.md`](README_FASE2.md).
+
 ## Estructura
 ```
 .
