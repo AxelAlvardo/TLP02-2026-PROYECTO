@@ -67,9 +67,9 @@ Los errores de etiquetado se cuentan en las oraciones que son español correcto 
 | Sistema | FP (español) | FN (español) | FP (gramática) | FN (gramática) | Errores de etiquetado S-V-O | Errores de etiquetado de categorías | Exactitud S-V-O | Exactitud de categorías | ms/oración |
 |---|---|---|---|---|---|---|---|---|---|
 | Parser propio (CFG) | 0 | 19 | 0 | 0 | 0 | — | 84.1% | — | 0.01 |
-| spaCy sm (crudo) | 15 | 0 | 34 | 0 | 3 | 3 | 93.2% | 98.7% (41 oraciones) | 1.32 |
-| spaCy sm + concordancia | 3 | 8 | 15 | 1 | 1 | 1 | 90.9% | 98.7% (41 oraciones) | 1.32 |
-| HuggingFace + reglas | 12 | 2 | 30 | 1 | — | 0 | — | 98.7% (41 oraciones) | 23.70 |
+| spaCy sm (crudo) | 15 | 0 | 34 | 0 | 3 | 3 | 93.2% | 98.7% (41 oraciones) | 1.27 |
+| spaCy sm + concordancia | 3 | 8 | 15 | 1 | 1 | 1 | 90.9% | 98.7% (41 oraciones) | 1.27 |
+| HuggingFace + reglas | 12 | 2 | 30 | 1 | — | 0 | — | 98.7% (41 oraciones) | 24.54 |
 | LLM sin ejemplos | 0 | 19 | 2 | 2 | 4 | — | 75.0% | — | 7419.82 |
 | LLM zero-shot | 0 | 19 | 2 | 2 | 3 | — | 77.3% | — | 5956.41 |
 | LLM few-shot | 0 | 19 | 2 | 2 | 0 | — | 84.1% | — | 5948.87 |

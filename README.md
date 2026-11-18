@@ -111,7 +111,7 @@ Verifica el tamaño y los niveles del conjunto, que el parser da la salida esper
 python -m tlp.espanol.comparacion_nlp
 ```
 Procesa las 71 oraciones con el parser propio, spaCy (crudo y con concordancia) y HuggingFace con reglas, y escribe la salida bruta de cada uno en `resultados/fase2/logs/`, una línea JSON por oración:
-- `parser.jsonl`: veredicto, regla que falla, árbol en notación de paréntesis, número de derivaciones y sujeto-verbo-objeto.
+- `parser.jsonl`: veredicto, regla que falla, el árbol de cada derivación en notación de paréntesis (dos en las oraciones ambiguas, en el mismo orden que las imágenes `_lectura1` y `_lectura2`), número de derivaciones y sujeto-verbo-objeto.
 - `spacy_sm_crudo.jsonl` y `spacy_sm_concordancia.jsonl`: cada token con su lema, categoría, dependencia, cabeza y morfología; sujeto-verbo-objeto y veredicto.
 - `huggingface.jsonl`: la categoría UPOS de cada palabra, el veredicto y la regla que falla.
 
@@ -171,7 +171,7 @@ GEMINI_API_KEY=<pega-aquí-tu-api-key>
 LLM_MODELO=gemini-3.5-flash-lite
 ```
 
-**Paso 6. Guardar el archivo y probar** con la prueba corta de la sección 6.3. Si falta algo (no existe `.env`, no hay ninguna clave, hay más de una o falta `LLM_MODELO`), el script indica qué corregir y se detiene sin llamar al LLM.
+**Paso 6. Guardar el archivo.** Si falta algo (no existe `.env`, no hay ninguna clave, hay más de una o falta `LLM_MODELO`), al correr el experimento (sección 6.3) el script indica qué corregir y se detiene sin llamar al LLM.
 
 > No pongas tu API Key en `.env.ejemplo`: ese archivo **sí** se sube al repositorio.
 >
@@ -189,13 +189,7 @@ Hay un archivo de prompt por variante en [`casos/espanol/prompts/`](casos/espano
 
 Puedes editarlos: las marcas `{gramatica}`, `{lexico}` y `{oracion}` se reemplazan solas por las reglas de producción, el léxico y la oración; cada ejemplo es una línea `Oración: ...` seguida de su respuesta en JSON. Si la sección `=== SISTEMA ===` queda vacía, no se envía mensaje de sistema.
 
-### 6.3 Prueba corta con 5 oraciones
-```bash
-python -m tlp.espanol.llm_experimento --variante few_shot --limite 5
-```
-Envía al LLM solo las 5 primeras oraciones con el prompt `few_shot`. Sirve para comprobar la clave y el nombre del modelo sin gastar las llamadas de la corrida completa (la corrida completa reemplaza este log).
-
-### 6.4 Corrida completa: las cuatro variantes
+### 6.3 Corrida completa: las cuatro variantes
 ```bash
 python -m tlp.espanol.llm_experimento --variante todas
 ```
@@ -209,7 +203,7 @@ python -m tlp.espanol.llm_experimento --variante zero_shot
 ```
 Corre solo la variante `zero_shot` (71 llamadas). Sirve igual con `sin_ejemplos`, `few_shot` o `combinado`.
 
-### 6.5 Pruebas del experimento (sin llamar a la API)
+### 6.4 Pruebas del experimento (sin llamar a la API)
 ```bash
 python -m unittest tests.test_llm_experimento -v
 ```

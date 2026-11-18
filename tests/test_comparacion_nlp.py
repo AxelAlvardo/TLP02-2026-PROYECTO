@@ -46,10 +46,17 @@ class TestLogParser(unittest.TestCase):
             self.assertEqual(list(r)[:len(CAMPOS_COMUNES)], CAMPOS_COMUNES)
             self.assertEqual(r["acepta"], c.esperado == "ACEPTA")
             if r["acepta"]:
-                self.assertTrue(r["arbol"].startswith("(O ") and r["derivaciones"] >= 1 and r["motivo"] == "")
+                self.assertTrue(r["derivaciones"] >= 1 and r["motivo"] == "")
+                self.assertEqual(len(r["arboles"]), r["derivaciones"])         # un árbol por derivación
+                self.assertTrue(all(a.startswith("(O ") for a in r["arboles"]))
                 self.assertEqual(len(r["svo"]), 3)
             else:
-                self.assertTrue(r["arbol"] is None and r["derivaciones"] == 0 and r["motivo"])
+                self.assertTrue(r["arboles"] == [] and r["derivaciones"] == 0 and r["motivo"])
+        # las ambiguas guardan sus dos lecturas, distintas entre sí
+        ambiguas = {r["id"]: r["arboles"] for r in registros if r["derivaciones"] > 1}
+        self.assertEqual(sorted(ambiguas), [28, 29, 30, 35])
+        for arboles in ambiguas.values():
+            self.assertEqual(len(set(arboles)), 2)
 
     def test_el_log_se_relee_igual(self):
         registros = analizar_propio(cargar_conjunto()[:5])

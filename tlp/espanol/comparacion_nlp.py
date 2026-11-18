@@ -3,7 +3,8 @@
 Procesa el conjunto de prueba (casos/espanol/conjunto_prueba.csv) con cada sistema, decide si ACEPTA o RECHAZA cada
 oración y escribe la salida bruta de cada sistema en resultados/fase2/logs/ (un archivo JSONL por sistema, una línea
 JSON por oración):
-  parser.jsonl                    parser propio: veredicto, regla que falla, árbol (paréntesis), derivaciones, S-V-O
+  parser.jsonl                    parser propio: veredicto, regla que falla, árbol de cada derivación (paréntesis),
+                                  número de derivaciones, S-V-O
   spacy_<modelo>_crudo.jsonl      spaCy: tokens (lema, categoría, dependencia, cabeza, morfología), S-V-O, veredicto
   spacy_<modelo>_concordancia.jsonl
   huggingface.jsonl               HuggingFace: categoría UPOS de cada palabra, veredicto y regla que falla
@@ -67,16 +68,17 @@ def escribir_log(registros: list[dict], ruta: str) -> str:
 
 # ------------------------------------------------------------------ parser propio
 def analizar_propio(casos: list[Caso]) -> list[dict]:
+    """`arboles`: un árbol por derivación, en el mismo orden que las imágenes _lectura1, _lectura2 de visualizar."""
     parser, out = ParserEspanol(), []
     version = "parser propio (tlp/espanol/gramatica_es.py)"
     for c in casos:
         t0 = time.perf_counter()
         arbol, diagnostico = parser.parse(c.oracion)
         ms = 1000 * (time.perf_counter() - t0)
-        derivaciones = len(parser.parse_todos(c.oracion)) if arbol else 0
+        arboles = parser.parse_todos(c.oracion) if arbol else []
         out.append(registro("Parser propio (CFG)", version, c, arbol is not None, "" if arbol else diagnostico,
-                            extraer_svo(arbol) if arbol else None, ms=ms, derivaciones=derivaciones,
-                            arbol=arbol.bracket() if arbol else None))
+                            extraer_svo(arbol) if arbol else None, ms=ms, derivaciones=len(arboles),
+                            arboles=[a.bracket() for a in arboles]))
     return out
 
 
