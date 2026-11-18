@@ -136,10 +136,14 @@ Corre las pruebas de las partes 4 y 5. Las de spaCy se omiten (`skipped`) si el 
 
 ## 6. Parte 6 — Experimento con LLM
 
-### 6.1 Configurar el LLM en el archivo `.env`
-El repositorio trae la plantilla `.env.ejemplo`, sin claves. A partir de ella cada quien crea su propio `.env`, que **no se sube** al repositorio (está en `.gitignore`), así que tu clave queda solo en tu computadora.
+### 6.1 Crear la API Key de Gemini y configurar el `.env`
+El repositorio trae la plantilla `.env.ejemplo`, sin claves. A partir de ella cada quien crea su propio `.env`, que **no se sube** al repositorio (está en `.gitignore`), así que tu API Key queda solo en tu computadora.
 
-**Paso 1. Copiar la plantilla como `.env`** (una sola vez)
+**Paso 1. Buscar la página de la API Key.** Busca en Google **«API Key Gemini»** y entra en la página de Google para crear la API Key de Gemini.
+
+**Paso 2. Crear la API Key.** Sigue los pasos que te indica la página para crear la API Key. Al terminar, cópiala: la vas a pegar en el `.env`.
+
+**Paso 3. Copiar la plantilla como `.env`** (una sola vez)
 
 Linux / macOS:
 ```bash
@@ -155,25 +159,21 @@ copy .env.ejemplo .env
 ```
 Crea el archivo `.env` en la raíz del proyecto, con las líneas de las claves y del modelo vacías.
 
-**Paso 2. Pegar tu clave de API.** Abre `.env` con cualquier editor de texto y pega tu clave en la línea del proveedor que vas a usar. Deja las otras dos vacías: el script elige el proveedor según la única clave que esté llena.
+**Paso 4. Pegar la API Key.** Abre `.env` con cualquier editor de texto y pega tu API Key en la línea `GEMINI_API_KEY`. Deja vacías `ANTHROPIC_API_KEY` y `OPENAI_API_KEY`.
 
-| Línea del `.env` | Proveedor | Dónde se obtiene la clave |
-|---|---|---|
-| `ANTHROPIC_API_KEY` | Claude | console.anthropic.com |
-| `OPENAI_API_KEY` | ChatGPT | platform.openai.com |
-| `GEMINI_API_KEY` | Gemini | aistudio.google.com |
-
-**Paso 3. Escribir el modelo.** En `LLM_MODELO` escribe el nombre exacto del modelo de ese proveedor (con o sin comillas). Por ejemplo, un `.env` listo para usar Gemini queda así:
+**Paso 5. Escribir el modelo.** En la línea `LLM_MODELO` escribe `gemini-4-hydrogen`. El `.env` queda así:
 ```
 ANTHROPIC_API_KEY=
 OPENAI_API_KEY=
-GEMINI_API_KEY=<tu-clave-de-gemini>
-LLM_MODELO=<nombre-del-modelo>
+GEMINI_API_KEY=<pega-aquí-tu-api-key>
+LLM_MODELO=gemini-4-hydrogen
 ```
 
-**Paso 4. Guardar el archivo y probar** con la prueba corta de la sección 6.3. Si falta algo (no existe `.env`, no hay ninguna clave, hay más de una o falta `LLM_MODELO`), el script indica qué corregir y se detiene sin llamar al LLM.
+**Paso 6. Guardar el archivo y probar** con la prueba corta de la sección 6.3. Si falta algo (no existe `.env`, no hay ninguna clave, hay más de una o falta `LLM_MODELO`), el script indica qué corregir y se detiene sin llamar al LLM.
 
-> No pongas tu clave en `.env.ejemplo`: ese archivo **sí** se sube al repositorio.
+> No pongas tu API Key en `.env.ejemplo`: ese archivo **sí** se sube al repositorio.
+>
+> El script también funciona con Claude o ChatGPT: en ese caso pega la clave en `ANTHROPIC_API_KEY` u `OPENAI_API_KEY` (en lugar de `GEMINI_API_KEY`) y escribe en `LLM_MODELO` el modelo de ese proveedor.
 
 ### 6.2 (Opcional) Editar el prompt: zero-shot o few-shot
 El prompt está en [`casos/espanol/prompt_llm.txt`](casos/espanol/prompt_llm.txt). Las marcas `{gramatica}`, `{lexico}` y `{oracion}` se reemplazan solas por las reglas de producción, el léxico y la oración.
