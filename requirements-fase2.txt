@@ -4,7 +4,7 @@
 -r requirements-spacy.txt
 transformers>=4.40
 torch>=2.2
-# Fase 2: experimento con LLM  (python -m tlp.espanol.llm_experimento; la clave y el modelo van en .env)
+# Fase 2: experimento con LLM  (python -m tlp.espanol.llm_experimento --variante todas; la clave y el modelo van en .env)
 anthropic>=0.40
 openai>=1.50
 google-genai>=1.0

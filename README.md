@@ -1,19 +1,22 @@
 # TLP02-2026 — Fase 2: gramática del español, comparación con NLP y experimento con LLM
 
-Esta guía reúne los comandos para ejecutar cada parte de la Fase 2. La Fase 1 está en [`README.md`](README.md).
+Esta guía reúne los comandos para ejecutar cada parte de la Fase 2.
 
 > Los comandos se ejecutan **desde la raíz del repositorio** (donde están `README.md` y la carpeta `tlp/`), con el entorno virtual **activado**.
 > Cada comando va en su propio bloque para que lo copies directamente; debajo de cada uno se explica para qué sirve.
 
 ## Qué comando corresponde a cada parte
 
+Para reproducir los experimentos, ejecuta las partes en el orden de la tabla: la parte 5 (métricas) lee los logs que escriben las partes 4 y 6.
+
 | Parte de la Fase 2 | Comando | Resultado |
 |---|---|---|
 | 1. Gramática libre de contexto | — (no se ejecuta) | [`docs/02_gramatica_espanol.md`](docs/02_gramatica_espanol.md) |
 | 2. Parser y árboles visuales | `python -m tlp.espanol.visualizar "<oración>"` · `python -m tlp.espanol.visualizar --conjunto` | `resultados/fase2/arboles/*.png` |
 | 3. Conjunto de prueba | `python -m unittest tests.test_fase2_espanol -v` | [`casos/espanol/conjunto_prueba.csv`](casos/espanol/conjunto_prueba.csv) |
-| 4 y 5. spaCy, HuggingFace y métricas | `python -m tlp.espanol.comparacion_nlp` | `resultados/fase2/` (tablas, CSV y gráficas) |
-| 6. Experimento con LLM | `python -m tlp.espanol.llm_experimento` | `resultados/fase2/llm/*.md` |
+| 4. Parser propio, spaCy y HuggingFace sobre el corpus | `python -m tlp.espanol.comparacion_nlp` | `resultados/fase2/logs/` (un log por sistema) |
+| 6. Experimento con LLM (4 variantes de prompt) | `python -m tlp.espanol.llm_experimento --variante todas` | `resultados/fase2/logs/llm_<variante>.jsonl` · `resultados/fase2/llm/respuestas_<variante>.md` |
+| 5. Métricas, tablas y gráficas de todos los enfoques | `python -m tlp.espanol.evaluar` | `resultados/fase2/` (`tablas.md`, CSV y gráficas) |
 
 ---
 
@@ -101,19 +104,18 @@ Verifica el tamaño y los niveles del conjunto, que el parser da la salida esper
 
 ---
 
-## 5. Partes 4 y 5 — Comparación con spaCy y HuggingFace, y métricas
+## 5. Parte 4 — Correr el parser propio, spaCy y HuggingFace sobre el corpus
 
-### 5.1 Generar la comparación, las tablas y las gráficas
+### 5.1 Generar los logs de los tres sistemas
 ```bash
 python -m tlp.espanol.comparacion_nlp
 ```
-Procesa el conjunto con el parser propio, spaCy (crudo y con concordancia) y HuggingFace con reglas. Calcula precisión, cobertura, tasa de rechazo correcto y la clasificación de errores (falsos positivos, falsos negativos y errores de etiquetado). Escribe en `resultados/fase2/`:
-- `tablas.md`: tablas de aceptación/rechazo y de clasificación de errores.
-- `metricas_globales.csv`: las mismas métricas, con sus intervalos de confianza.
-- `errores_detalle.csv`: cada error, con su motivo.
-- `grafica_metricas.png` y `grafica_errores.png`: las gráficas.
+Procesa las 71 oraciones con el parser propio, spaCy (crudo y con concordancia) y HuggingFace con reglas, y escribe la salida bruta de cada uno en `resultados/fase2/logs/`, una línea JSON por oración:
+- `parser.jsonl`: veredicto, regla que falla, árbol en notación de paréntesis, número de derivaciones y sujeto-verbo-objeto.
+- `spacy_sm_crudo.jsonl` y `spacy_sm_concordancia.jsonl`: cada token con su lema, categoría, dependencia, cabeza y morfología; sujeto-verbo-objeto y veredicto.
+- `huggingface.jsonl`: la categoría UPOS de cada palabra, el veredicto y la regla que falla.
 
-La primera vez descarga el modelo de HuggingFace (`wietsedv/xlm-roberta-base-ft-udpos28-es`, ~1,1 GB), así que necesita internet.
+Cada línea lleva además la versión de la librería y del modelo, y el tiempo de esa oración en milisegundos. Este comando **no** calcula métricas: eso lo hace `evaluar` (sección 7). La primera vez descarga el modelo de HuggingFace (`wietsedv/xlm-roberta-base-ft-udpos28-es`, ~1,1 GB), así que necesita internet.
 
 ### 5.2 (Opcional) Incluir también el modelo mediano de spaCy
 ```bash
@@ -124,13 +126,13 @@ Descarga el modelo mediano de spaCy.
 ```bash
 python -m tlp.espanol.comparacion_nlp --modelos sm md
 ```
-Igual que 5.1, pero compara con los modelos pequeño y mediano de spaCy.
+Igual que 5.1, pero también corre el modelo mediano (sus logs son `spacy_md_crudo.jsonl` y `spacy_md_concordancia.jsonl`).
 
-### 5.3 Pruebas de la comparación
+### 5.3 Pruebas de los tres sistemas y sus logs
 ```bash
 python -m unittest tests.test_comparacion_nlp -v
 ```
-Corre las pruebas de las partes 4 y 5. Las de spaCy se omiten (`skipped`) si el modelo no está instalado y las de HuggingFace si faltan `transformers` o `torch`.
+Corre las pruebas de la parte 4. Las de spaCy se omiten (`skipped`) si el modelo no está instalado y las de HuggingFace si faltan `transformers` o `torch`.
 
 ---
 
@@ -161,12 +163,12 @@ Crea el archivo `.env` en la raíz del proyecto, con las líneas de las claves y
 
 **Paso 4. Pegar la API Key.** Abre `.env` con cualquier editor de texto y pega tu API Key en la línea `GEMINI_API_KEY`. Deja vacías `ANTHROPIC_API_KEY` y `OPENAI_API_KEY`.
 
-**Paso 5. Escribir el modelo.** En la línea `LLM_MODELO` escribe `gemini-4-hydrogen`. El `.env` queda así:
+**Paso 5. Escribir el modelo.** En la línea `LLM_MODELO` escribe `gemini-3.5-flash-lite`, que es el modelo con el que se hicieron las pruebas. El `.env` queda así:
 ```
 ANTHROPIC_API_KEY=
 OPENAI_API_KEY=
 GEMINI_API_KEY=<pega-aquí-tu-api-key>
-LLM_MODELO=gemini-4-hydrogen
+LLM_MODELO=gemini-3.5-flash-lite
 ```
 
 **Paso 6. Guardar el archivo y probar** con la prueba corta de la sección 6.3. Si falta algo (no existe `.env`, no hay ninguna clave, hay más de una o falta `LLM_MODELO`), el script indica qué corregir y se detiene sin llamar al LLM.
@@ -175,22 +177,37 @@ LLM_MODELO=gemini-4-hydrogen
 >
 > El script también funciona con Claude o ChatGPT: en ese caso pega la clave en `ANTHROPIC_API_KEY` u `OPENAI_API_KEY` (en lugar de `GEMINI_API_KEY`) y escribe en `LLM_MODELO` el modelo de ese proveedor.
 
-### 6.2 (Opcional) Editar el prompt: zero-shot o few-shot
-El prompt está en [`casos/espanol/prompt_llm.txt`](casos/espanol/prompt_llm.txt). Las marcas `{gramatica}`, `{lexico}` y `{oracion}` se reemplazan solas por las reglas de producción, el léxico y la oración.
-- **Zero-shot:** borra toda la sección `EJEMPLOS RESUELTOS`.
-- **Few-shot:** deja, agrega o quita ejemplos (cada ejemplo es una línea `Oración: ...` seguida de su respuesta en JSON).
+### 6.2 Los cuatro prompts
+Hay un archivo de prompt por variante en [`casos/espanol/prompts/`](casos/espanol/prompts). Los cuatro llevan la gramática, el léxico, el formato de respuesta (JSON) y la oración; solo cambian las instrucciones de sistema y los ejemplos:
+
+| Variante | Archivo | Instrucciones de sistema («aplica ÚNICAMENTE estas reglas») | Ejemplos resueltos |
+|---|---|---|---|
+| `sin_ejemplos` | [`sin_ejemplos.txt`](casos/espanol/prompts/sin_ejemplos.txt) | no | no |
+| `zero_shot` | [`zero_shot.txt`](casos/espanol/prompts/zero_shot.txt) | sí | no |
+| `few_shot` | [`few_shot.txt`](casos/espanol/prompts/few_shot.txt) | no | 6 |
+| `combinado` | [`combinado.txt`](casos/espanol/prompts/combinado.txt) | sí | 6 |
+
+Puedes editarlos: las marcas `{gramatica}`, `{lexico}` y `{oracion}` se reemplazan solas por las reglas de producción, el léxico y la oración; cada ejemplo es una línea `Oración: ...` seguida de su respuesta en JSON. Si la sección `=== SISTEMA ===` queda vacía, no se envía mensaje de sistema.
 
 ### 6.3 Prueba corta con 5 oraciones
 ```bash
-python -m tlp.espanol.llm_experimento --limite 5
+python -m tlp.espanol.llm_experimento --variante few_shot --limite 5
 ```
-Envía al LLM solo las 5 primeras oraciones. Sirve para comprobar la clave y el nombre del modelo sin gastar las 71 llamadas.
+Envía al LLM solo las 5 primeras oraciones con el prompt `few_shot`. Sirve para comprobar la clave y el nombre del modelo sin gastar las llamadas de la corrida completa (la corrida completa reemplaza este log).
 
-### 6.4 Corrida completa (71 oraciones)
+### 6.4 Corrida completa: las cuatro variantes
 ```bash
-python -m tlp.espanol.llm_experimento
+python -m tlp.espanol.llm_experimento --variante todas
 ```
-Envía al LLM las 71 oraciones del conjunto (71 llamadas a la API, que cobra el proveedor) y escribe `resultados/fase2/llm/respuestas_<proveedor>_<modelo>_<fecha-hora>.md` con el resumen, el prompt usado y la respuesta de cada oración. Si la primera llamada falla (clave o modelo mal escritos), se detiene enseguida.
+Envía al LLM las 71 oraciones con cada uno de los cuatro prompts (4 × 71 = 284 llamadas a la API, que cobra el proveedor). Si el proveedor responde que está saturado (error 503) o que se llegó al límite de peticiones (error 429), espera 10, 20 y 40 segundos y reintenta la misma oración. Si la primera llamada falla por otro motivo (clave o modelo mal escritos), se detiene enseguida. Por cada variante escribe:
+- `resultados/fase2/logs/llm_<variante>.jsonl`: el log bruto, una línea JSON por llamada con su timestamp, la duración, el proveedor, el modelo (el pedido y el que reporta la API), la versión del SDK, los parámetros (`temperature` y `max_tokens`), el prompt completo enviado y la respuesta cruda.
+- `resultados/fase2/llm/respuestas_<variante>.md`: lo mismo en forma legible, con un resumen.
+
+Para correr una sola variante, cambia `todas` por su nombre:
+```bash
+python -m tlp.espanol.llm_experimento --variante zero_shot
+```
+Corre solo la variante `zero_shot` (71 llamadas). Sirve igual con `sin_ejemplos`, `few_shot` o `combinado`.
 
 ### 6.5 Pruebas del experimento (sin llamar a la API)
 ```bash
@@ -200,7 +217,29 @@ Corre las pruebas con un LLM simulado: no usa la clave ni gasta llamadas.
 
 ---
 
-## 7. Ejecutar todas las pruebas (Fase 1 y Fase 2)
+## 7. Parte 5 — Métricas de todos los enfoques (script de evaluación)
+
+### 7.1 Calcular las métricas, las tablas y las gráficas
+```bash
+python -m tlp.espanol.evaluar
+```
+Lee **solo** el corpus y los logs de `resultados/fase2/logs/` (no vuelve a correr ningún sistema) y calcula, para cada enfoque, precisión, cobertura, tasa de rechazo correcto y la clasificación de errores (falsos positivos, falsos negativos y errores de etiquetado), contra dos referencias: si la oración es español correcto (`gramatical_es`) y si la gramática la deriva (`esperado_gramatica`). Escribe en `resultados/fase2/`:
+- `tablas.md`: versiones y parámetros de cada enfoque y las tablas comparativas.
+- `metricas_globales.csv`: las mismas métricas, con sus intervalos de confianza.
+- `errores_detalle.csv`: cada error, con su referencia y su motivo.
+- `grafica_metricas.png` y `grafica_errores.png`: las gráficas (un panel por referencia).
+
+Es reproducible: con los mismos logs produce exactamente los mismos archivos, porque no usa la fecha ni mide tiempos (los milisegundos por oración salen de los logs).
+
+### 7.2 Pruebas del script de evaluación
+```bash
+python -m unittest tests.test_evaluar -v
+```
+Comprueba las métricas con las dos referencias, la lectura del sujeto-verbo-objeto en los árboles del LLM y que dos corridas con los mismos logs producen archivos idénticos.
+
+---
+
+## 8. Ejecutar todas las pruebas (Fase 1 y Fase 2)
 ```bash
 python -m unittest discover -s tests -t . -v
 ```
