@@ -48,8 +48,7 @@ from .llm_experimento import VARIANTES, extraer_json, veredicto
 DIR_LOGS = os.path.join(RAIZ, "resultados", "fase2", "logs")
 DESTINO = os.path.join(RAIZ, "resultados", "fase2")
 REFERENCIAS = {"español": "español correcto (`gramatical_es`)", "gramática": "gramática (`esperado_gramatica`)"}
-NOMBRE_VARIANTE = {"sin_ejemplos": "sin ejemplos", "zero_shot": "zero-shot", "few_shot": "few-shot",
-                   "combinado": "combinado"}
+NOMBRE_VARIANTE = {"zero_shot": "zero-shot", "few_shot": "few-shot"}
 TAMANOS_SPACY = ("sm", "md", "lg", "trf")
 
 CAT2UPOS = {"DET": {"DET"}, "N": {"NOUN"}, "PN": {"PROPN"}, "ADJ": {"ADJ"}, "V": {"VERB", "AUX"},

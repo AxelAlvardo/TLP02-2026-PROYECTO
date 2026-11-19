@@ -1,18 +1,17 @@
 """tlp/espanol/llm_experimento.py - Fase 2 (punto 6): ¿sigue un LLM las reglas de la gramática formal?
 
 Le da a un LLM (Claude, ChatGPT o Gemini) las reglas de producción y el léxico de la gramática y le pide analizar las
-oraciones del conjunto de prueba. Hay cuatro variantes de prompt, cada una en casos/espanol/prompts/<variante>.txt:
-  sin_ejemplos   reglas + léxico + formato de respuesta                    (sin instrucciones de sistema, sin ejemplos)
-  zero_shot      lo anterior + instrucciones de sistema («aplica ÚNICAMENTE estas reglas»)          (sin ejemplos)
-  few_shot       lo anterior sin instrucciones de sistema + 6 ejemplos resueltos
-  combinado      instrucciones de sistema + 6 ejemplos resueltos
+oraciones del conjunto de prueba. Hay dos variantes de prompt, cada una en casos/espanol/prompts/<variante>.txt;
+las dos llevan las mismas instrucciones de sistema («aplica ÚNICAMENTE estas reglas») y solo difieren en los ejemplos:
+  zero_shot      reglas + léxico + formato de respuesta + instrucciones de sistema                 (sin ejemplos)
+  few_shot       lo mismo + 6 ejemplos resueltos
 
 Configuración: archivo .env en la raíz del proyecto (plantilla: .env.ejemplo)
   ANTHROPIC_API_KEY (Claude) | OPENAI_API_KEY (ChatGPT) | GEMINI_API_KEY (Gemini)   llena SOLO la que vas a usar
   LLM_MODELO                                                                      nombre del modelo de ese proveedor
 
 Uso:  python -m tlp.espanol.llm_experimento --variante zero_shot              # una variante, todas las oraciones
-      python -m tlp.espanol.llm_experimento --variante todas                  # las cuatro variantes
+      python -m tlp.espanol.llm_experimento --variante todas                  # las dos variantes
       python -m tlp.espanol.llm_experimento --variante few_shot --limite 5    # solo las 5 primeras (prueba barata)
 Salidas de cada variante (una corrida nueva reemplaza la anterior de esa variante):
   resultados/fase2/logs/llm_<variante>.jsonl      log bruto: una línea JSON por llamada al LLM, con su timestamp,
@@ -45,7 +44,7 @@ from .gramatica_es import REGLAS_BNF, ParserEspanol, lexico_para_prompt
 
 RUTA_ENV = os.path.join(RAIZ, ".env")
 DIR_PROMPTS = os.path.join(RAIZ, "casos", "espanol", "prompts")
-VARIANTES = ("sin_ejemplos", "zero_shot", "few_shot", "combinado")
+VARIANTES = ("zero_shot", "few_shot")
 DIR_LOGS = os.path.join(RAIZ, "resultados", "fase2", "logs")
 DESTINO = os.path.join(RAIZ, "resultados", "fase2", "llm")
 PROVEEDORES = {"ANTHROPIC_API_KEY": "claude", "OPENAI_API_KEY": "chatgpt", "GEMINI_API_KEY": "gemini"}
@@ -363,7 +362,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m tlp.espanol.llm_experimento",
                                  description="Pide a un LLM analizar el conjunto de prueba con las reglas de la gramática.")
     ap.add_argument("--variante", required=True, choices=[*VARIANTES, "todas"],
-                    help="prompt a usar (casos/espanol/prompts/<variante>.txt); 'todas' corre las cuatro")
+                    help="prompt a usar (casos/espanol/prompts/<variante>.txt); 'todas' corre las dos")
     ap.add_argument("--limite", type=int, default=0, help="analizar solo las N primeras oraciones (prueba barata)")
     a = ap.parse_args(argv)
     variantes = VARIANTES if a.variante == "todas" else (a.variante,)

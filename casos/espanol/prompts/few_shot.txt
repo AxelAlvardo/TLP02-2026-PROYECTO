@@ -1,6 +1,7 @@
 # Prompt del experimento con LLM — variante FEW-SHOT.
 # Lo usa:  python -m tlp.espanol.llm_experimento --variante few_shot
-# Contenido: gramática + léxico + formato de respuesta + 6 ejemplos resueltos. Sin instrucciones de sistema.
+# Contenido: gramática + léxico + formato de respuesta + instrucciones de sistema + 6 ejemplos resueltos.
+# Es igual a zero_shot.txt más el bloque de ejemplos: la única diferencia entre las dos variantes son los ejemplos.
 # Las líneas que empiezan con "#" son comentarios: NO se envían al LLM.
 # El script reemplaza estas marcas:  {gramatica} = reglas de producción (REGLAS_BNF)
 #                                    {lexico}    = léxico con sus rasgos
@@ -9,6 +10,7 @@
 # Ejemplos: puedes agregar o quitar; cada uno es una línea "Oración: ..." seguida de su respuesta en JSON.
 
 === SISTEMA ===
+Eres un analizador sintáctico FORMAL. Aplicas ÚNICAMENTE la gramática y el léxico que se te dan. No uses tu conocimiento general del español: si una oración es correcta en español pero la gramática no puede derivarla, debes RECHAZARLA; si la gramática la deriva aunque suene rara, debes ACEPTARLA. Responde SOLO con un objeto JSON.
 
 === USUARIO ===
 GRAMÁTICA:

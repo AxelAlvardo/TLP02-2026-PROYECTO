@@ -15,7 +15,7 @@ Para reproducir los experimentos, ejecuta las partes en el orden de la tabla: la
 | 2. Parser y árboles visuales | `python -m tlp.espanol.visualizar "<oración>"` · `python -m tlp.espanol.visualizar --conjunto` | `resultados/fase2/arboles/*.png` |
 | 3. Conjunto de prueba | `python -m unittest tests.test_fase2_espanol -v` | [`casos/espanol/conjunto_prueba.csv`](casos/espanol/conjunto_prueba.csv) |
 | 4. Parser propio, spaCy y HuggingFace sobre el corpus | `python -m tlp.espanol.comparacion_nlp` | `resultados/fase2/logs/` (un log por sistema) |
-| 6. Experimento con LLM (4 variantes de prompt) | `python -m tlp.espanol.llm_experimento --variante todas` | `resultados/fase2/logs/llm_<variante>.jsonl` · `resultados/fase2/llm/respuestas_<variante>.md` |
+| 6. Experimento con LLM (2 variantes de prompt: zero-shot y few-shot) | `python -m tlp.espanol.llm_experimento --variante todas` | `resultados/fase2/logs/llm_<variante>.jsonl` · `resultados/fase2/llm/respuestas_<variante>.md` |
 | 5. Métricas, tablas y gráficas de todos los enfoques | `python -m tlp.espanol.evaluar` | `resultados/fase2/` (`tablas.md`, CSV y gráficas) |
 
 ---
@@ -177,23 +177,21 @@ LLM_MODELO=gemini-3.5-flash-lite
 >
 > El script también funciona con Claude o ChatGPT: en ese caso pega la clave en `ANTHROPIC_API_KEY` u `OPENAI_API_KEY` (en lugar de `GEMINI_API_KEY`) y escribe en `LLM_MODELO` el modelo de ese proveedor.
 
-### 6.2 Los cuatro prompts
-Hay un archivo de prompt por variante en [`casos/espanol/prompts/`](casos/espanol/prompts). Los cuatro llevan la gramática, el léxico, el formato de respuesta (JSON) y la oración; solo cambian las instrucciones de sistema y los ejemplos:
+### 6.2 Los dos prompts
+Hay un archivo de prompt por variante en [`casos/espanol/prompts/`](casos/espanol/prompts). Los dos llevan la gramática, el léxico, el formato de respuesta (JSON), las mismas instrucciones de sistema y la oración; solo cambian los ejemplos:
 
 | Variante | Archivo | Instrucciones de sistema («aplica ÚNICAMENTE estas reglas») | Ejemplos resueltos |
 |---|---|---|---|
-| `sin_ejemplos` | [`sin_ejemplos.txt`](casos/espanol/prompts/sin_ejemplos.txt) | no | no |
 | `zero_shot` | [`zero_shot.txt`](casos/espanol/prompts/zero_shot.txt) | sí | no |
-| `few_shot` | [`few_shot.txt`](casos/espanol/prompts/few_shot.txt) | no | 6 |
-| `combinado` | [`combinado.txt`](casos/espanol/prompts/combinado.txt) | sí | 6 |
+| `few_shot` | [`few_shot.txt`](casos/espanol/prompts/few_shot.txt) | sí | 6 |
 
 Puedes editarlos: las marcas `{gramatica}`, `{lexico}` y `{oracion}` se reemplazan solas por las reglas de producción, el léxico y la oración; cada ejemplo es una línea `Oración: ...` seguida de su respuesta en JSON. Si la sección `=== SISTEMA ===` queda vacía, no se envía mensaje de sistema.
 
-### 6.3 Corrida completa: las cuatro variantes
+### 6.3 Corrida completa: las dos variantes
 ```bash
 python -m tlp.espanol.llm_experimento --variante todas
 ```
-Envía al LLM las 71 oraciones con cada uno de los cuatro prompts (4 × 71 = 284 llamadas a la API, que cobra el proveedor). Si el proveedor responde que está saturado (error 503) o que se llegó al límite de peticiones (error 429), espera 10, 20 y 40 segundos y reintenta la misma oración. Si la primera llamada falla por otro motivo (clave o modelo mal escritos), se detiene enseguida. Por cada variante escribe:
+Envía al LLM las 71 oraciones con cada uno de los dos prompts (2 × 71 = 142 llamadas a la API, que cobra el proveedor). Si el proveedor responde que está saturado (error 503) o que se llegó al límite de peticiones (error 429), espera 10, 20 y 40 segundos y reintenta la misma oración. Si la primera llamada falla por otro motivo (clave o modelo mal escritos), se detiene enseguida. Por cada variante escribe:
 - `resultados/fase2/logs/llm_<variante>.jsonl`: el log bruto, una línea JSON por llamada con su timestamp, la duración, el proveedor, el modelo (el pedido y el que reporta la API), la versión del SDK, los parámetros (`temperature` y `max_tokens`), el prompt completo enviado y la respuesta cruda.
 - `resultados/fase2/llm/respuestas_<variante>.md`: lo mismo en forma legible, con un resumen.
 
@@ -201,7 +199,7 @@ Para correr una sola variante, cambia `todas` por su nombre:
 ```bash
 python -m tlp.espanol.llm_experimento --variante zero_shot
 ```
-Corre solo la variante `zero_shot` (71 llamadas). Sirve igual con `sin_ejemplos`, `few_shot` o `combinado`.
+Corre solo la variante `zero_shot` (71 llamadas). Sirve igual con `few_shot`.
 
 ### 6.4 Pruebas del experimento (sin llamar a la API)
 ```bash

@@ -52,24 +52,23 @@ class TestConfiguracion(unittest.TestCase):
 
 
 class TestPrompts(unittest.TestCase):
-    def test_cuatro_variantes(self):
-        """sin_ejemplos: ni instrucciones ni ejemplos; zero_shot: instrucciones; few_shot: ejemplos; combinado: ambos."""
-        esperado = {"sin_ejemplos": (False, 0), "zero_shot": (True, 0), "few_shot": (False, 6), "combinado": (True, 6)}
+    def test_dos_variantes(self):
+        """zero_shot: instrucciones sin ejemplos; few_shot: las mismas instrucciones + 6 ejemplos."""
+        self.assertEqual(le.VARIANTES, ("zero_shot", "few_shot"))
+        esperado = {"zero_shot": (True, 0), "few_shot": (True, 6)}
         for v, (sistema, plantilla) in _prompts().items():
             with self.subTest(variante=v):
                 self.assertEqual((bool(sistema), le.contar_ejemplos(plantilla)), esperado[v])
 
-    def test_diseno_dos_por_dos(self):
-        """Las variantes solo difieren en las instrucciones de sistema y en los ejemplos; el resto es idéntico."""
+    def test_solo_difieren_en_los_ejemplos(self):
+        """Mismas instrucciones de sistema; el few-shot es el zero-shot más el bloque de ejemplos."""
         p = _prompts()
-        self.assertEqual(p["sin_ejemplos"][1], p["zero_shot"][1])
-        self.assertEqual(p["few_shot"][1], p["combinado"][1])
-        self.assertEqual(p["zero_shot"][0], p["combinado"][0])
+        self.assertEqual(p["zero_shot"][0], p["few_shot"][0])
         self.assertIn("analizador sintáctico FORMAL", p["zero_shot"][0])
         con_ejemplos = p["few_shot"][1]
         sin_bloque = (con_ejemplos[:con_ejemplos.index("EJEMPLOS RESUELTOS:")]
                       + con_ejemplos[con_ejemplos.index("Analiza esta oración:"):])
-        self.assertEqual(sin_bloque, p["sin_ejemplos"][1])
+        self.assertEqual(sin_bloque, p["zero_shot"][1])
 
     def test_mensaje_completo(self):
         for v, (_, plantilla) in _prompts().items():
@@ -82,12 +81,11 @@ class TestPrompts(unittest.TestCase):
 
     def test_ejemplos_fuera_del_conjunto(self):
         corpus = {c.oracion for c in cargar_conjunto()}
-        for v in ("few_shot", "combinado"):
-            _, plantilla = le.leer_prompt(le.ruta_prompt(v))
-            ejemplos = {l.split(":", 1)[1].strip() for l in plantilla.splitlines()
-                        if l.startswith("Oración:") and "{oracion}" not in l}
-            self.assertEqual(len(ejemplos), 6)
-            self.assertFalse(ejemplos & corpus)
+        _, plantilla = le.leer_prompt(le.ruta_prompt("few_shot"))
+        ejemplos = {l.split(":", 1)[1].strip() for l in plantilla.splitlines()
+                    if l.startswith("Oración:") and "{oracion}" not in l}
+        self.assertEqual(len(ejemplos), 6)
+        self.assertFalse(ejemplos & corpus)
 
     def test_prompts_invalidos(self):
         self.assertEqual(le.leer_prompt(_archivo("=== SISTEMA ===\n=== USUARIO ===\nOración: {oracion}\n", "p.txt")),
