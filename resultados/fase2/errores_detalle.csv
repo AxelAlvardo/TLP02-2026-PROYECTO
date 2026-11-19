@@ -147,33 +147,6 @@ HuggingFace + reglas,gramática,67,3,el gato que corre persiguen al ratón,falso
 HuggingFace + reglas,gramática,68,3,los niños que duerme corren,falso positivo,discordancia verbo-antecedente en relativa
 HuggingFace + reglas,gramática,69,3,los niños de la escuela duerme,falso positivo,discordancia con atractor (sustantivo intermedio)
 HuggingFace + reglas,gramática,70,3,la niña que lee el libro corren,falso positivo,discordancia a distancia tras relativa con objeto
-LLM sin ejemplos,español,46,3,come el pan,falso negativo,sujeto SIEMPRE explícito
-LLM sin ejemplos,español,47,3,llegó ayer,falso negativo,Restricción: sujeto SIEMPRE explícito
-LLM sin ejemplos,español,48,3,el gato la persigue,falso negativo,Obj -> A SN
-LLM sin ejemplos,español,49,3,Juan y María leen un libro,falso negativo,no hay coordinación
-LLM sin ejemplos,español,50,3,el gato come y duerme,falso negativo,no hay coordinación
-LLM sin ejemplos,español,51,3,el libro que el niño lee es nuevo,falso negativo,no hay verbos copulativos / LÉXICO: V
-LLM sin ejemplos,español,52,3,el libro fue escrito por el profesor,falso negativo,no hay pasivas / restricciones léxicas
-LLM sin ejemplos,español,53,3,quiero que el gato corra,falso negativo,Léxico
-LLM sin ejemplos,español,54,3,¿dónde está el gato?,falso negativo,Restricciones: no hay interrogativas / Verbos copulativos
-LLM sin ejemplos,español,55,3,el gato no come el pan,falso negativo,"no hay coordinación, clíticos, negación, interrogativas, pasivas, ni verbos copulativos"
-LLM sin ejemplos,español,56,3,el gato es negro,falso negativo,no hay verbos copulativos
-LLM sin ejemplos,español,57,3,yo veo a María,falso negativo,Restricciones
-LLM sin ejemplos,español,58,3,se venden casas,falso negativo,clíticos
-LLM sin ejemplos,español,61,3,el profesor lee más libros que la estudiante,falso negativo,Reglas de léxico / Rel
-LLM sin ejemplos,español,62,3,Juan y María son rubio y morena respectivamente,falso negativo,"no hay coordinación, clíticos, negación, interrogativas, pasivas, ni verbos copulativos."
-LLM sin ejemplos,español,63,3,el gato duerme porque está cansado,falso negativo,Léxico / Gramática
-LLM sin ejemplos,español,64,3,cuando llegó Pedro los niños corrieron,falso negativo,O -> SN SV
-LLM sin ejemplos,español,65,3,el libro come la casa,falso negativo,Obj -> SN
-LLM sin ejemplos,español,66,3,la mesa duerme tranquilamente,falso negativo,Obj
-LLM sin ejemplos,gramática,59,3,la niña que el gato persigue corre,falso positivo,"La oración es gramaticalmente correcta y cumple con todas las restricciones de concordancia, tipología verbal y selección de objeto."
-LLM sin ejemplos,gramática,60,3,el gato que duerme en la casa que Juan compró come el pan,falso positivo,"La oración cumple estrictamente con todas las reglas gramaticales, restricciones de concordancia (género, número y persona), selección de objetos según animacidad y restricciones del léxico."
-LLM sin ejemplos,gramática,65,3,el libro come la casa,falso negativo,Obj -> SN
-LLM sin ejemplos,gramática,66,3,la mesa duerme tranquilamente,falso negativo,Obj
-LLM sin ejemplos,—,3,1,el profesor escribe una carta,error de etiquetado (S-V-O),"esperado ('profesor', 'escribir', 'carta'), obtenido ('profesor', 'escribir', '-')"
-LLM sin ejemplos,—,18,1,Ana compró una casa,error de etiquetado (S-V-O),"esperado ('ana', 'comprar', 'casa'), obtenido ('ana', 'comprar', '-')"
-LLM sin ejemplos,—,24,2,el profesor lee rápidamente la carta,error de etiquetado (S-V-O),"esperado ('profesor', 'leer', 'carta'), obtenido ('profesor', 'leer', '-')"
-LLM sin ejemplos,—,35,2,los estudiantes jóvenes escribieron una carta grande para la profesora,error de etiquetado (S-V-O),"esperado ('estudiante', 'escribir', 'carta'), obtenido ('estudiante', 'escribir', '-')"
 LLM zero-shot,español,46,3,come el pan,falso negativo,O -> SN SV
 LLM zero-shot,español,47,3,llegó ayer,falso negativo,O -> SN SV
 LLM zero-shot,español,48,3,el gato la persigue,falso negativo,Restricciones
@@ -200,49 +173,26 @@ LLM zero-shot,gramática,66,3,la mesa duerme tranquilamente,falso negativo,SV ->
 LLM zero-shot,—,7,1,María compra una manzana,error de etiquetado (S-V-O),"esperado ('maría', 'comprar', 'manzana'), obtenido ('maría', 'comprar', '-')"
 LLM zero-shot,—,18,1,Ana compró una casa,error de etiquetado (S-V-O),"esperado ('ana', 'comprar', 'casa'), obtenido ('ana', 'comprar', '-')"
 LLM zero-shot,—,35,2,los estudiantes jóvenes escribieron una carta grande para la profesora,error de etiquetado (S-V-O),"esperado ('estudiante', 'escribir', 'carta'), obtenido ('estudiante', 'escribir', '-')"
-LLM few-shot,español,46,3,come el pan,falso negativo,restricción de sujeto explícito: sujeto omitido al inicio de la oración
-LLM few-shot,español,47,3,llegó ayer,falso negativo,palabra(s) fuera del léxico: ayer
-LLM few-shot,español,48,3,el gato la persigue,falso negativo,palabra(s) fuera del léxico: la
-LLM few-shot,español,49,3,Juan y María leen un libro,falso negativo,restricción de gramática: no hay coordinación
+LLM few-shot,español,46,3,come el pan,falso negativo,restricción «sujeto SIEMPRE explícito»
+LLM few-shot,español,47,3,llegó ayer,falso negativo,restricción: sujeto SIEMPRE explícito / regla «O -> SN SV»: falta el sujeto explícito
+LLM few-shot,español,48,3,el gato la persigue,falso negativo,"restricción: ""no hay coordinación, clíticos, negación, interrogativas, pasivas, ni verbos copulativos"" (aparición del clítico 'la')"
+LLM few-shot,español,49,3,Juan y María leen un libro,falso negativo,restricción «no hay coordinación»: 'y'
 LLM few-shot,español,50,3,el gato come y duerme,falso negativo,palabra(s) fuera del léxico: y
-LLM few-shot,español,51,3,el libro que el niño lee es nuevo,falso negativo,restricción «no hay verbos copulativos» o palabra fuera del léxico: es
-LLM few-shot,español,52,3,el libro fue escrito por el profesor,falso negativo,"restricción: no hay pasivas, ni verbos copulativos (fue)"
-LLM few-shot,español,53,3,quiero que el gato corra,falso negativo,palabra(s) fuera del léxico: quiero
-LLM few-shot,español,54,3,¿dónde está el gato?,falso negativo,"restricción de interrogativas (no permitidas) y palabra(s) fuera del léxico: dónde, está"
-LLM few-shot,español,55,3,el gato no come el pan,falso negativo,restricción violada: no hay negación; llegó 'no'
-LLM few-shot,español,56,3,el gato es negro,falso negativo,restricción «no hay verbos copulativos»
+LLM few-shot,español,51,3,el libro que el niño lee es nuevo,falso negativo,palabra(s) fuera del léxico / gramática: es (o ausencia de verbos copulativos)
+LLM few-shot,español,52,3,el libro fue escrito por el profesor,falso negativo,restricción «no hay pasivas»
+LLM few-shot,español,53,3,quiero que el gato corra,falso negativo,"falla en la posición 0 ('quiero'), palabra fuera del léxico"
+LLM few-shot,español,54,3,¿dónde está el gato?,falso negativo,restricción: interrogativas
+LLM few-shot,español,55,3,el gato no come el pan,falso negativo,restricción violada: no hay negación
+LLM few-shot,español,56,3,el gato es negro,falso negativo,restricción «no hay verbos copulativos»: 'es' no pertenece al léxico de verbos o está prohibido
 LLM few-shot,español,57,3,yo veo a María,falso negativo,palabra(s) fuera del léxico: yo
-LLM few-shot,español,58,3,se venden casas,falso negativo,"restricción «no hay clíticos ni pasivas», o palabra fuera del léxico: se"
+LLM few-shot,español,58,3,se venden casas,falso negativo,palabra(s) fuera del léxico: se
 LLM few-shot,español,61,3,el profesor lee más libros que la estudiante,falso negativo,palabra(s) fuera del léxico: más
-LLM few-shot,español,62,3,Juan y María son rubio y morena respectivamente,falso negativo,"restricción «no hay coordinación, clíticos, negación, interrogativas, pasivas, ni verbos copulativos» o palabra(s) fuera del léxico: y, son, respectivamente"
+LLM few-shot,español,62,3,Juan y María son rubio y morena respectivamente,falso negativo,"palabra(s) fuera del léxico: y, son, rubio, morena, respectivamente"
 LLM few-shot,español,63,3,el gato duerme porque está cansado,falso negativo,"palabra(s) fuera del léxico: porque, está"
 LLM few-shot,español,64,3,cuando llegó Pedro los niños corrieron,falso negativo,palabra(s) fuera del léxico: cuando
-LLM few-shot,español,65,3,el libro come la casa,falso negativo,"regla de objeto «Obj → SN»: el núcleo de 'casa' es no animado (n), pero 'casa' es el objeto directo de un verbo ('come') que requiere un objeto directo sin la preposición 'a' (en esta gramática las restricciones semánticas de 'comer' exigen un objeto animado o compatible, o bien falla por el rasgo del Obj)"
-LLM few-shot,español,66,3,la mesa duerme tranquilamente,falso negativo,"falla en la semántica del verbo o restricciones de selección de 'duerme': el verbo intransitivo 'duerme' requiere un sujeto animado o humano, pero 'mesa' es no animado (n)"
+LLM few-shot,español,65,3,el libro come la casa,falso negativo,"Obj → SN: 'la casa' es no animado (n), por lo que Obj no puede ser SN simple sin la preposición 'a' (que solo aplica para humano, animal o PN, donde el humano la exige), pero además el verbo 'come' requiere un objeto válido y 'libro' (n) como sujeto no puede comer una casa sintácticamente de acuerdo con las restricciones semánticas o la regla Obj → SN requiere un objeto no animado o animal, sin embargo la regla de Obj dice 'solo si el núcleo de SN es no animado (n) o animal (a)' para Obj -> SN. Espere, 'casa' es no animado (n), por lo que 'la casa' sí cumple la condición de Obj -> SN. No obstante, 'come' es un verbo transitivo cuyo sujeto es 'el libro' (n). La gramática no restringe la animación del sujeto para 'come', sino del Obj. ¿Por qué se rechaza? Revisemos el léxico y las reglas: 'come' es tr. 'el libro' es SN m,sg,n. 'la casa' es SN f,sg,n. La regla Obj -> SN exige que el núcleo de SN sea no animado (n) o animal (a). 'casa' es (n). Entonces 'la casa' es un Obj válido. ¿Falla la concordancia? 'la' (f,sg) y 'casa' (f,sg). ¿Falla algo más? Ah, la restricción del objeto humano o no animado. Espere, 'libro' es n, 'casa' es n. Todo parece encajar estructuralmente en la gramática formal. ¿Por qué fallaría? Analicemos bien la regla de Obj: 'Obj -> SN [solo si el núcleo de SN es no animado (n) o animal (a)]'. 'casa' es (n). Entonces la estructura sintáctica es derivable. Acepta: true? ¡Espere! El prompt dice: 'si una oración es correcta en español pero la gramática no puede derivarla, debes RECHAZARLA; si la gramática la deriva aunque suene rara, debes ACEPTARLA.' Semánticamente 'el libro come la casa' es absurda en español, pero sintácticamente la gramática la deriva."
+LLM few-shot,español,66,3,la mesa duerme tranquilamente,falso negativo,"falla en la posición 3 ('duerme'), restricción léxica de selección o semántica: el verbo 'duerme' requiere un sujeto animado o humano, pero el núcleo del SN es 'mesa' que es inanimado (n)"
 LLM few-shot,gramática,59,3,la niña que el gato persigue corre,falso positivo,derivable
 LLM few-shot,gramática,60,3,el gato que duerme en la casa que Juan compró come el pan,falso positivo,derivable
-LLM few-shot,gramática,65,3,el libro come la casa,falso negativo,"regla de objeto «Obj → SN»: el núcleo de 'casa' es no animado (n), pero 'casa' es el objeto directo de un verbo ('come') que requiere un objeto directo sin la preposición 'a' (en esta gramática las restricciones semánticas de 'comer' exigen un objeto animado o compatible, o bien falla por el rasgo del Obj)"
-LLM few-shot,gramática,66,3,la mesa duerme tranquilamente,falso negativo,"falla en la semántica del verbo o restricciones de selección de 'duerme': el verbo intransitivo 'duerme' requiere un sujeto animado o humano, pero 'mesa' es no animado (n)"
-LLM combinado,español,46,3,come el pan,falso negativo,sujeto SIEMPRE explícito
-LLM combinado,español,47,3,llegó ayer,falso negativo,restricción: sujeto SIEMPRE explícito / regla O -> SN SV
-LLM combinado,español,48,3,el gato la persigue,falso negativo,"no hay coordinación, clíticos, negación, interrogativas, pasivas, ni verbos copulativos"
-LLM combinado,español,49,3,Juan y María leen un libro,falso negativo,restricción «no hay coordinación» o palabra(s) fuera del léxico: y
-LLM combinado,español,50,3,el gato come y duerme,falso negativo,palabra(s) fuera del léxico: y
-LLM combinado,español,51,3,el libro que el niño lee es nuevo,falso negativo,"no hay verbos copulativos (restricción: ""ni verbos copulativos"") / palabra ""es"" fuera del léxico"
-LLM combinado,español,52,3,el libro fue escrito por el profesor,falso negativo,restricción «no hay pasivas»
-LLM combinado,español,53,3,quiero que el gato corra,falso negativo,"falla en la posición 0 ('quiero'), palabra fuera del léxico"
-LLM combinado,español,54,3,¿dónde está el gato?,falso negativo,"no hay interrogativas / palabra(s) fuera del léxico: ¿, dónde, está"
-LLM combinado,español,55,3,el gato no come el pan,falso negativo,restricción: no hay negación
-LLM combinado,español,56,3,el gato es negro,falso negativo,restricción: no hay verbos copulativos
-LLM combinado,español,57,3,yo veo a María,falso negativo,palabra(s) fuera del léxico: yo
-LLM combinado,español,58,3,se venden casas,falso negativo,palabra(s) fuera del léxico / uso de clítico (no permitido)
-LLM combinado,español,61,3,el profesor lee más libros que la estudiante,falso negativo,palabra(s) fuera del léxico: más
-LLM combinado,español,62,3,Juan y María son rubio y morena respectivamente,falso negativo,"palabra(s) fuera del léxico: y, son, rubio, morena, respectivamente"
-LLM combinado,español,63,3,el gato duerme porque está cansado,falso negativo,"palabra(s) fuera del léxico: porque, está"
-LLM combinado,español,64,3,cuando llegó Pedro los niños corrieron,falso negativo,palabra(s) fuera del léxico: cuando
-LLM combinado,español,65,3,el libro come la casa,falso negativo,Obj -> SN
-LLM combinado,español,66,3,la mesa duerme tranquilamente,falso negativo,"restricción semántica de léxico / selección de verbo intr: 'duerme' requiere sujeto con rasgo animado o humano, pero 'mesa' es inanimado (n)"
-LLM combinado,gramática,59,3,la niña que el gato persigue corre,falso positivo,derivable
-LLM combinado,gramática,60,3,el gato que duerme en la casa que Juan compró come el pan,falso positivo,derivable
-LLM combinado,gramática,65,3,el libro come la casa,falso negativo,Obj -> SN
-LLM combinado,gramática,66,3,la mesa duerme tranquilamente,falso negativo,"restricción semántica de léxico / selección de verbo intr: 'duerme' requiere sujeto con rasgo animado o humano, pero 'mesa' es inanimado (n)"
+LLM few-shot,gramática,65,3,el libro come la casa,falso negativo,"Obj → SN: 'la casa' es no animado (n), por lo que Obj no puede ser SN simple sin la preposición 'a' (que solo aplica para humano, animal o PN, donde el humano la exige), pero además el verbo 'come' requiere un objeto válido y 'libro' (n) como sujeto no puede comer una casa sintácticamente de acuerdo con las restricciones semánticas o la regla Obj → SN requiere un objeto no animado o animal, sin embargo la regla de Obj dice 'solo si el núcleo de SN es no animado (n) o animal (a)' para Obj -> SN. Espere, 'casa' es no animado (n), por lo que 'la casa' sí cumple la condición de Obj -> SN. No obstante, 'come' es un verbo transitivo cuyo sujeto es 'el libro' (n). La gramática no restringe la animación del sujeto para 'come', sino del Obj. ¿Por qué se rechaza? Revisemos el léxico y las reglas: 'come' es tr. 'el libro' es SN m,sg,n. 'la casa' es SN f,sg,n. La regla Obj -> SN exige que el núcleo de SN sea no animado (n) o animal (a). 'casa' es (n). Entonces 'la casa' es un Obj válido. ¿Falla la concordancia? 'la' (f,sg) y 'casa' (f,sg). ¿Falla algo más? Ah, la restricción del objeto humano o no animado. Espere, 'libro' es n, 'casa' es n. Todo parece encajar estructuralmente en la gramática formal. ¿Por qué fallaría? Analicemos bien la regla de Obj: 'Obj -> SN [solo si el núcleo de SN es no animado (n) o animal (a)]'. 'casa' es (n). Entonces la estructura sintáctica es derivable. Acepta: true? ¡Espere! El prompt dice: 'si una oración es correcta en español pero la gramática no puede derivarla, debes RECHAZARLA; si la gramática la deriva aunque suene rara, debes ACEPTARLA.' Semánticamente 'el libro come la casa' es absurda en español, pero sintácticamente la gramática la deriva."
+LLM few-shot,gramática,66,3,la mesa duerme tranquilamente,falso negativo,"falla en la posición 3 ('duerme'), restricción léxica de selección o semántica: el verbo 'duerme' requiere un sujeto animado o humano, pero el núcleo del SN es 'mesa' que es inanimado (n)"
